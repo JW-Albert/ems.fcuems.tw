@@ -57,6 +57,7 @@ templates/
    pip install pymysql
    pip install line-bot-sdk
    ```
+3. 建立SQL資料庫於本地端
 
 ### 執行方式
 
@@ -80,5 +81,5 @@ templates/
 
 ## 隱私權政策與版權
 
-本系統遵守相關隱私權保護條款，所有使用者資料將嚴格保密，詳細條款請參閱 [隱私權保護政策](templates/Information/隱私權保護政策.html) 與 [著作權宣告](templates/Information/著作權宣告.html)。
+本系統遵守相關隱私權保護條款，所有使用者資料將嚴格保密，詳細條款請參閱 [隱私權保護政策](templates/Information/PRIVACY_POLICY.md) 與 [著作權宣告](templates/Information/COPYRIGHT_NOTICE.md)。
 
