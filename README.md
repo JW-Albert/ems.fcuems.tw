@@ -5,7 +5,7 @@
 
 ## 協作指南
 
-請參閱 [協作指南](upload.md)，了解提交流程與規範。
+請參閱 [協作指南](COLLABORATION_GUIDELINES.md)，了解提交流程與規範。
 
 ## 功能簡介
 
@@ -19,6 +19,7 @@
 
 - **後端框架**: Flask
 - **前端技術**: HTML、CSS
+- **資料庫**: MySQL，使用 PyMySQL 驅動進行連接與操作
 - **伺服器環境**: Debian 10
 - **其他**: LINE Bot API 用於訊息廣播功能
 
@@ -57,7 +58,22 @@ templates/
    pip install pymysql
    pip install line-bot-sdk
    ```
-3. 建立SQL資料庫於本地端
+3. 建立 MySQL 資料庫，並初始化以下結構（僅示例）：
+   ```sql
+   CREATE DATABASE emergency_system;
+   USE emergency_system;
+
+   CREATE TABLE cases (
+       id INT AUTO_INCREMENT PRIMARY KEY,
+       case_type VARCHAR(255) NOT NULL,
+       event_type VARCHAR(255) NOT NULL,
+       location VARCHAR(255),
+       floor INT,
+       room VARCHAR(255),
+       additional_info TEXT,
+       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+   );
+   ```
 
 ### 執行方式
 
@@ -65,7 +81,7 @@ templates/
    ```bash
    python app.py
    ```
-2. 開啟瀏覽器，訪問 `https://127.0.0.1:5000` 進入系統主頁。
+2. 開啟瀏覽器，訪問 `http://127.0.0.1:5000` 進入系統主頁。
 
 ## 版權與授權
 
@@ -81,5 +97,4 @@ templates/
 
 ## 隱私權政策與版權
 
-本系統遵守相關隱私權保護條款，所有使用者資料將嚴格保密，詳細條款請參閱 [隱私權保護政策](templates/Information/PRIVACY_POLICY.md) 與 [著作權宣告](templates/Information/COPYRIGHT_NOTICE.md)。
-
+本系統遵守相關隱私權保護條款，所有使用者資料將嚴格保密，詳細條款請參閱 [隱私權保護政策](PRIVACY_POLICY.md) 與 [著作權宣告](COPYRIGHT_NOTICE.md)。
