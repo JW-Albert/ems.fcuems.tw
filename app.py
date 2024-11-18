@@ -214,4 +214,4 @@ def server_error(e):
     return render_template("/Information/500.html")
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=80)
+    app.run()
