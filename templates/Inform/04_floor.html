@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>逢甲大學 緊急事件通報系統｜填寫｜案件樓層</title>
+        <link rel="icon" href="favicon.ico" type="image/x-icon">
+        <style>
+            /* 固定標題位置，文字放大 */
+            h2.title {
+                position: fixed;
+                top: 0;
+                width: 100%;
+                text-align: center;
+                color: brown;
+                margin: 0;
+                padding: 20px 0;
+                background-color: white;
+                font-size: 48px;
+                font-weight: bold;
+                border-bottom: 2px solid #ccc;
+                z-index: 1000;
+            }
+
+            /* 置中表單與按鈕區 */
+            body {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+                padding-top: 120px; /* 保留上方空間給標題 */
+                padding-bottom: 80px; /* 保留下方空間給取消按鈕 */
+                box-sizing: border-box;
+            }
+
+            form {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 20px; /* 元素間距 */
+            }
+
+            /* 樓層提示文字樣式 */
+            .floor-label {
+                font-size: 32px; /* 放大提示文字 */
+                font-weight: bold;
+            }
+
+            /* 樓層輸入框樣式 */
+            .floor-input {
+                font-size: 24px;
+                padding: 10px;
+                width: 100px;
+                text-align: center;
+                border: 2px solid #ccc;
+                border-radius: 5px;
+            }
+
+            /* 提交按鈕樣式 */
+            .submit-button {
+                font-size: 24px;
+                padding: 10px 20px;
+                border: 2px solid black;
+                border-radius: 5px;
+                cursor: pointer;
+                color: white;
+                background-color: green;
+            }
+
+            /* 取消重填按鈕 */
+            .cancel-button {
+                position: fixed;
+                bottom: 20px;
+                font-size: 20px;
+                width: 120px;
+                height: 40px;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- 固定在最上方的標題 -->
+        <h2 class="title">案件樓層</h2>
+        
+        <!-- 表單包含樓層輸入框和提交按鈕 -->
+        <form action="/Inform/Read_04_floor" method="POST">
+            <!-- 樓層提示文字 -->
+            <label for="floor" class="floor-label">請輸入樓層</label>
+            <input type="number" id="floor" name="floor" class="floor-input" placeholder="樓層" min="-3" max="100" required>
+            
+            <!-- 提交按鈕 -->
+            <button type="submit" class="submit-button">繼續</button>
+        </form>
+        
+        <!-- 固定於頁面最下方的取消重填按鈕 -->
+        <input type="button" value="返回" class="cancel-button" onclick="history.back()">
+    </body>
+</html>
