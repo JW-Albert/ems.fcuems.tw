@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>逢甲大學 緊急事件通報系統｜填寫｜案件類別</title>
+        <link rel="icon" href="favicon.ico" type="image/x-icon">
+        <style>
+            /* 固定標題位置，文字放大 */
+            h2.title {
+                position: fixed;
+                top: 0;
+                width: 100%;
+                text-align: center;
+                color: brown;
+                margin: 0;
+                padding: 20px 0;
+                background-color: white;
+                font-size: 48px; /* 放大標題文字 */
+                font-weight: bold;
+                border-bottom: 2px solid #ccc;
+                z-index: 1000;
+            }
+
+            /* 置中表單與按鈕區 */
+            body {
+                display: flex;
+                flex-direction: column;
+                justify-content: center; /* 垂直置中 */
+                align-items: center; /* 水平置中 */
+                height: 100vh;
+                margin: 0;
+                padding-top: 80px; /* 保留上方空間給標題 */
+                padding-bottom: 80px; /* 保留下方空間給取消按鈕 */
+                box-sizing: border-box;
+            }
+
+            form {
+                display: flex;
+                justify-content: center; /* 讓按鈕水平置中 */
+                gap: 20px; /* 按鈕間距 */
+            }
+
+            /* 按鈕樣式 */
+            button {
+                font-size: 36px; /* 增大字體 */
+                padding: 20px 40px; /* 按鈕內距 */
+                border: 3px solid black; /* 添加外框 */
+                border-radius: 10px; /* 外框圓角 */
+                cursor: pointer;
+                color: red; /* 文字顏色改為紅色 */
+                background-color: white; /* 背景顏色 */
+            }
+
+            /* 按鈕文字粗體 */
+            button h3 {
+                margin: 0;
+                font-weight: bold;
+            }
+
+            /* 取消重填按鈕 */
+            .cancel-button {
+                position: fixed;
+                bottom: 20px; /* 固定於底部 */
+                font-size: 20px;
+                width: 120px;
+                height: 40px;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- 固定在最上方的標題 -->
+        <h2 class="title">案件類別</h2>
+        
+        <!-- 置中的表單按鈕 -->
+        <form action="/Inform/Read_01_Case" method="POST">
+            <button type="submit" name="case" value="1" class="btn-critical"><h3>危急</h3></button>
+            <button type="submit" name="case" value="2" class="btn-normal"><h3>一般</h3></button>
+        </form>
+        
+        
+        <!-- 固定於頁面最下方的取消重填按鈕 -->
+        <input type="button" value="取消重填" class="cancel-button" onclick="location.href='/'">
+    </body>
+</html>

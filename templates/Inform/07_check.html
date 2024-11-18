@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>逢甲大學 緊急事件通報系統｜填報確認</title>
+        <link rel="icon" href="favicon.ico" type="image/x-icon">
+        <style>
+            /* 標題樣式 */
+            h2 {
+                text-align: center;
+                color: #8B4513; /* CoconutBrown 顏色 */
+                font-size: 36px;
+                font-weight: bold;
+                margin-bottom: 30px;
+            }
+
+            /* 案件資訊容器樣式 */
+            .info-container {
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                background-color: #f9f9f9;
+            }
+
+            /* 案件資訊標題和內容樣式 */
+            .info-item {
+                font-size: 24px;
+                color: #6495ED; /* CornflowerBlue 顏色 */
+                margin: 15px 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: center;
+            }
+
+            .info-item span {
+                flex: 1;
+            }
+
+            .info-value {
+                color: #000; /* 黑色文字 */
+                font-weight: bold;
+                text-align: center;
+            }
+
+            /* 按鈕容器和樣式 */
+            .button-container {
+                text-align: center;
+                margin-top: 30px;
+            }
+
+            .button {
+                width: 120px;
+                height: 40px;
+                font-size: 20px;
+                margin: 10px;
+                cursor: pointer;
+                border: none;
+                border-radius: 5px;
+            }
+
+            .button.confirm {
+                background-color: green;
+                color: white;
+            }
+
+            .button.cancel {
+                background-color: red;
+                color: white;
+            }
+
+            /* 取消重填按鈕 */
+            .cancel-button {
+                position: fixed;
+                bottom: 20px; /* 固定於底部 */
+                left: 50%; /* 置中 */
+                transform: translateX(-50%); /* 調整位置 */
+                font-size: 20px;
+                width: 120px;
+                height: 40px;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>確認緊急事件單</h2>
+        
+        <!-- 案件資訊區域 -->
+        <div class="info-container">
+            <div class="info-item">
+                <span>案件類型：</span>
+                <span class="info-value">{{case}}</span>
+            </div>
+            <div class="info-item">
+                <span>案件分類：</span>
+                <span class="info-value">{{event}}</span>
+            </div>
+            <div class="info-item">
+                <span>案件地點：</span>
+                <span class="info-value">{{locat}}</span>
+            </div>
+            <div class="info-item">
+                <span>案件位置：</span>
+                <span class="info-value">{{room}}</span>
+            </div>
+            <div class="info-item">
+                <span>案件補充：</span>
+                <span class="info-value">{{content}}</span>
+            </div>
+        </div>
+        
+        <!-- 確認與錯誤按鈕 -->
+        <div class="button-container">
+            <button class="button confirm" onclick="location.href='/Inform/08_Send'">確定</button>
+            <button class="button cancel" onclick="history.back()">返回</button>
+        </div>
+        <!-- 固定於頁面最下方的取消重填按鈕 -->
+        <input type="button" value="取消重填" class="cancel-button" onclick="location.href='/'">
+    </body>
+</html>
