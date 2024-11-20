@@ -1,0 +1,8 @@
+Application ID
+1308385105609490462
+
+Public Key
+a4866d86d16316ccf209d6d3503dd105f89750b8fb60bf7b14a6ed86e0c0f3af
+
+DIsscord Webhook Link
+https://discord.com/api/webhooks/1308807125492826212/QFqPbXu3TKZoIVgxPB0oYl1O3VOkoUOD2dYu9sDO4OG1OpbGlirJLwj57hUIzze5BETA
