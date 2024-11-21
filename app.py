@@ -94,11 +94,8 @@ def mail_msg(who: str) -> email.message.EmailMessage:
     msg.set_content(session.get('message', ''))
     return msg
 
-mail_data = ""
-
 def mail(sql :str) -> None:
-    if (mail_data == ""):
-        mail_data = sql_search(sql)
+    mail_data = sql_search(sql)
     server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
     server.login("jw.albert.tw@gmail.com", "ymmfjhcezfxrjwom")
     for email in mail_data["EMAIL"]:
