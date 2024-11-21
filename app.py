@@ -60,6 +60,7 @@ def broadcast_message(group_id, message):
 hook = Webhook('https://discord.com/api/webhooks/1308807125492826212/QFqPbXu3TKZoIVgxPB0oYl1O3VOkoUOD2dYu9sDO4OG1OpbGlirJLwj57hUIzze5BETA')
 def discord_send(message):
     hook.send(message)
+
 ################################ 前置函數 ################################
 def sql_search(table) -> pd.DataFrame:
     db = pymysql.connect(host='localhost', port=3306, user='fcuemsadmin', passwd='FCUems@2541', charset='utf8', db='fcuems')
@@ -191,7 +192,7 @@ def Inform_09_Sending():
     )
     discord_send(session['message']+"\n@everyone")
     mail()
-    broadcast_message(group_id, session['message'])
+    #broadcast_message(group_id, session['message'])
     return redirect("/Inform/10_Sended")
 
 @app.route("/Inform/10_Sended")
