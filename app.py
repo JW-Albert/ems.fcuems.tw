@@ -35,7 +35,7 @@ def bot_callback():
 def handle_join(event):
     group_id = event.source.group_id
     print(f"Bot has joined the group with groupId: {group_id}")
-    line_bot_api.push_message(group_id, TextSendMessage(text="大家好！我是逢甲大學衛保救護隊的報警機器人!"))
+    line_bot_api.push_message(group_id, TextSendMessage(text="大家好！我是逢甲大學衛保救護隊的報警機器人!\n本群組ID: {group_id}"))
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
