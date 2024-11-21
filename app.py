@@ -7,6 +7,8 @@ import email.message
 import smtplib
 import pymysql
 import pandas as pd
+from dhooks import Webhook
+
 
 app = Flask(__name__, static_folder="static", static_url_path="/")
 app.secret_key = 'your_secret_key'  # 設定一個密鑰
@@ -52,6 +54,12 @@ def send_group_message(group_id, message):
 def broadcast_message(group_id, message):
     send_person_message(message)
     send_group_message(group_id, message)
+
+################################ Discord  ################################
+#Discord Webhook
+hook = Webhook('https://discord.com/api/webhooks/1308807125492826212/QFqPbXu3TKZoIVgxPB0oYl1O3VOkoUOD2dYu9sDO4OG1OpbGlirJLwj57hUIzze5BETA')
+def discord_send(message):
+    hook.send(message)
 
 ################################ 前置函數 ################################
 def sql_search(table) -> pd.DataFrame:
@@ -182,9 +190,9 @@ def Inform_09_Sending():
         f"案件補充：\n\t{content_with_tabs}\n"
         f"通報時間：{Time()}"
     )
-
-    broadcast_message(group_id, session['message'])
+    discord_send(session['message']+"\n@everyone")
     mail()
+    #broadcast_message(group_id, session['message'])
     return redirect("/Inform/10_Sended")
 
 @app.route("/Inform/10_Sended")
