@@ -57,6 +57,7 @@ templates/
    pip install pandas
    pip install pymysql
    pip install line-bot-sdk
+   pip install dhooks
    ```
 3. 建立 MySQL 資料庫，並初始化以下結構（僅示例）：
    ```sql
