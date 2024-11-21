@@ -9,9 +9,8 @@ import pymysql
 import pandas as pd
 from dhooks import Webhook
 
-
 app = Flask(__name__, static_folder="static", static_url_path="/")
-app.secret_key = 'your_secret_key'  # 設定一個密鑰
+app.secret_key = 'FCUems2541'  # 設定一個密鑰
 app.config['SESSION_TYPE'] = 'filesystem'
 
 ################################ LINE ################################
@@ -94,7 +93,8 @@ def mail() -> None:
 case_table = {1: "危急", 2: "一般"}
 event_table = {1: "OHCA(暈倒)", 2: "內科", 3: "外科"}
 locat_table = {1: "行政大樓", 2: "行政二館", 3: "紀念館", 4: "圖書館", 5: "科航", 6: "商學", 7: "忠勤", 8: "建築", 9: "語文", 10: "工學",
-               11: "人言", 12: "資電", 13: "人社", 14: "電通", 15: "育樂", 16: "土木", 17: "理學", 18: "學思", 19: "體育館", 20: "文創中心"}
+               11: "人言", 12: "資電", 13: "人社", 14: "電通", 15: "育樂", 16: "土木", 17: "理學", 18: "學思", 19: "體育館", 20: "文創中心",
+               21: "共善"}
 group_id = "C3813a6d30efe51a2cb7754ff7add0257"
 
 @app.route("/")
@@ -138,8 +138,8 @@ def Inform_Read_03_Location():
     if(selected_button != 0):
         session['locat'] = str(selected_button)
     else:
-        session['locat'] = "21"
-        locat_table.update({21: custom_location})
+        session['locat'] = "99"
+        locat_table.update({99: custom_location})
         session['locat_table'] = locat_table
 
     return redirect("/Inform/05_Room")
