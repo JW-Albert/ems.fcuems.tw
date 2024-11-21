@@ -10,14 +10,21 @@ import pandas as pd
 from dhooks import Webhook
 
 app = Flask(__name__, static_folder="static", static_url_path="/")
-app.secret_key = 'FCUems2541'  # 設定一個密鑰
+app.secret_key = 'FCUems2541'
 app.config['SESSION_TYPE'] = 'filesystem'
+
+# 廣播寄送控制
+line = 0
+discord = 0
+mail = 0
+t_mail = 1
 
 ################################ LINE ################################
 # 設定 LINE Bot 的認證資訊
 line_bot_api = LineBotApi('algFfH1TLPcNM8SNrXqw1TctVTwnOqHS5iB+b0PmTS1RaBX6l+3+0SlodhoZRIf2RuCdSz2F7wS0fae6Q+/sTLWdS/5nQJf6x/7hQ1ok8QCXLSh3FyyNrJ25FoIzEBcy/qWfzdw0FkJRNtqT44oCZAdB04t89/1O/w1cDnyilFU=')
 handler = WebhookHandler('f051c4b27893ba9c08164dd4f8eafc02')
 
+# Line Bot 返回資訊
 @app.route("/bot/callback", methods=['POST'])
 def bot_callback():
     signature = request.headers['X-Line-Signature']
@@ -31,12 +38,14 @@ def bot_callback():
 
     return 'OK'
 
+# 加入群組顯示群組 ID
 @handler.add(JoinEvent)
 def handle_join(event):
     group_id = event.source.group_id
     print(f"Bot has joined the group with groupId: {group_id}")
     line_bot_api.push_message(group_id, TextSendMessage(text="大家好！我是逢甲大學衛保救護隊的報警機器人!\n本群組ID: {group_id}"))
 
+# 訊號測試
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_message = event.message.text
@@ -44,14 +53,19 @@ def handle_message(event):
     if user_message == "訊號測試":
         line_bot_api.reply_message(reply_token, TextSendMessage(text="訊號良好"))
 
+# 單獨用戶寄發(好友)
 def send_person_message(message):
     line_bot_api.broadcast(TextSendMessage(text=message))
 
+# 群組用戶寄發
 def send_group_message(group_id, message):
     line_bot_api.push_message(group_id, TextSendMessage(text=message))
 
+# 寄送報警訊息
 def broadcast_message(group_id, message):
+    # 寄送予好友
     send_person_message(message)
+    # 寄送予群組
     send_group_message(group_id, message)
 
 ################################ Discord  ################################
@@ -80,11 +94,14 @@ def mail_msg(who: str) -> email.message.EmailMessage:
     msg.set_content(session.get('message', ''))
     return msg
 
-def mail() -> None:
-    data = sql_search("EMT")
+mail_data = ""
+
+def mail(sql :str) -> None:
+    if (mail_data == ""):
+        mail_data = sql_search(sql)
     server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
     server.login("jw.albert.tw@gmail.com", "ymmfjhcezfxrjwom")
-    for email in data["EMAIL"]:
+    for email in mail_data["EMAIL"]:
         msg = mail_msg(email)
         server.send_message(msg)
     server.close()
@@ -190,9 +207,16 @@ def Inform_09_Sending():
         f"案件補充：\n\t{content_with_tabs}\n"
         f"通報時間：{Time()}"
     )
-    discord_send(session['message']+"\n@everyone")
-    mail()
-    #broadcast_message(group_id, session['message'])
+
+    if(discord == 1):
+        discord_send(session['message']+"\n@everyone")
+    if(mail == 1):
+        mail("EMT")
+    if(t_mail == 1):
+        mail("T_EMT")
+    if(line == 1):
+        broadcast_message(group_id, session['message'])
+    
     return redirect("/Inform/10_Sended")
 
 @app.route("/Inform/10_Sended")
