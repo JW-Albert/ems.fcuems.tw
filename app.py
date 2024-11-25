@@ -16,8 +16,8 @@ app.config['SESSION_TYPE'] = 'filesystem'
 # 廣播寄送控制
 line = 0
 discord = 0
-mail = 0
-t_mail = 1
+mail = 1
+t_mail = 0 #資料庫尚未建置
 
 ################################ LINE ################################
 # 設定 LINE Bot 的認證資訊
@@ -90,11 +90,11 @@ def mail_msg(who: str) -> email.message.EmailMessage:
     msg = email.message.EmailMessage()
     msg["From"] = "jw.albert.tw@gmail.com"
     msg["To"] = who
-    msg["Subject"] = f"逢甲大學 緊急事件通報系統 案件類型 「{case_table[session['case']]}」 緊急事件通知"
+    msg["Subject"] = f"逢甲大學 緊急事件通報系統 案件類型 「{case_table[session['case']]}」 緊急事件通知 (測試中)"
     msg.set_content(session.get('message', ''))
     return msg
 
-def mail(sql :str) -> None:
+def send_mail(sql :str) -> None:
     mail_data = sql_search(sql)
     server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
     server.login("jw.albert.tw@gmail.com", "ymmfjhcezfxrjwom")
@@ -154,7 +154,8 @@ def Inform_Read_03_Location():
     else:
         session['locat'] = "99"
         locat_table.update({99: custom_location})
-        session['locat_table'] = locat_table
+    
+    session['locat_table'] = locat_table
 
     return redirect("/Inform/05_Room")
 
@@ -191,7 +192,6 @@ def Inform_08_Send():
 
 @app.route("/Inform/09_Sending")
 def Inform_09_Sending():
-    global group_id
     # 處理內容中的換行符
     content_with_tabs = session['content'].replace('\n', '\n\t')
     
@@ -208,9 +208,9 @@ def Inform_09_Sending():
     if(discord == 1):
         discord_send(session['message']+"\n@everyone")
     if(mail == 1):
-        mail("EMT")
+        send_mail("EMT")
     if(t_mail == 1):
-        mail("T_EMT")
+        send_mail("T_EMT")
     if(line == 1):
         broadcast_message(group_id, session['message'])
     
