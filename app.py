@@ -60,11 +60,11 @@ def open_csv(file :str) -> pd.DataFrame:
 
 ################################ LINE ################################
 # 設定 LINE Bot 的認證資訊
-line_bot_info = open_csv("./data/line_bot")
+line_bot_info = open_csv("data/line_bot")
 line_bot_api = LineBotApi(line_bot_info["LineBotApi"][0])
 handler = WebhookHandler(line_bot_info["WebhookHandler"][0])
 
-group_id = open_csv("./data/line_group")
+group_id = open_csv("data/line_group")
 group_id = group_id["group_id"][0]
 
 # Line Bot 返回資訊
@@ -115,7 +115,7 @@ def broadcast_message(group_id, message):
 
 ################################ Discord  ################################
 #Discord Webhook
-discord_info = open_csv("./data/discord")
+discord_info = open_csv("data/discord_hook")
 hook = Webhook(discord_info["Webhook"][0])
 def discord_send(message):
     hook.send(message)
