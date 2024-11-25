@@ -16,9 +16,9 @@ app.config['SESSION_TYPE'] = 'filesystem'
 
 
 # 廣播寄送控制
-line = 1
+line = 0
 discord = 1
-mail = 1
+mail = 0
 t_mail = 0 #資料庫尚未建置
 
 
