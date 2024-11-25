@@ -13,16 +13,59 @@ app = Flask(__name__, static_folder="static", static_url_path="/")
 app.secret_key = 'FCUems2541'
 app.config['SESSION_TYPE'] = 'filesystem'
 
+
+
 # 廣播寄送控制
-line = 0
-discord = 0
+line = 1
+discord = 1
 mail = 1
 t_mail = 0 #資料庫尚未建置
 
+
+
+################################ 前置函數 ################################
+def sql_search(table) -> pd.DataFrame:
+    db = pymysql.connect(host='localhost', port=3306, user='fcuemsadmin', passwd='FCUems@2541', charset='utf8', db='fcuems')
+    sql = "SELECT * FROM `"+ table +"`"
+    data = pd.read_sql(sql, db)
+    db.close()
+    return data
+
+def Time() -> str:
+    now = datetime.datetime.now().strftime("%Y年%m月%d日 %H時%M分%S秒")
+    return now
+
+def mail_msg(who: str) -> email.message.EmailMessage:
+    msg = email.message.EmailMessage()
+    msg["From"] = "jw.albert.tw@gmail.com"
+    msg["To"] = who
+    msg["Subject"] = f"逢甲大學 緊急事件通報系統 案件類型 「{case_table[session['case']]}」 緊急事件通知 (測試中)"
+    msg.set_content(session.get('message', ''))
+    return msg
+
+def send_mail(sql :str) -> None:
+    mail_data = sql_search(sql)
+    server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+    server.login("jw.albert.tw@gmail.com", "ymmfjhcezfxrjwom")
+    for email in mail_data["EMAIL"]:
+        msg = mail_msg(email)
+        server.send_message(msg)
+    server.close()
+
+def open_csv(file :str) -> pd.DataFrame:
+    data = pd.read_csv(file + ".csv")
+    return data
+
+
+
 ################################ LINE ################################
 # 設定 LINE Bot 的認證資訊
-line_bot_api = LineBotApi('algFfH1TLPcNM8SNrXqw1TctVTwnOqHS5iB+b0PmTS1RaBX6l+3+0SlodhoZRIf2RuCdSz2F7wS0fae6Q+/sTLWdS/5nQJf6x/7hQ1ok8QCXLSh3FyyNrJ25FoIzEBcy/qWfzdw0FkJRNtqT44oCZAdB04t89/1O/w1cDnyilFU=')
-handler = WebhookHandler('f051c4b27893ba9c08164dd4f8eafc02')
+line_bot_info = open_csv("./data/line_bot")
+line_bot_api = LineBotApi(line_bot_info["LineBotApi"][0])
+handler = WebhookHandler(line_bot_info["WebhookHandler"][0])
+
+group_id = open_csv("./data/line_group")
+group_id = group_id["group_id"][0]
 
 # Line Bot 返回資訊
 @app.route("/bot/callback", methods=['POST'])
@@ -68,40 +111,16 @@ def broadcast_message(group_id, message):
     # 寄送予群組
     send_group_message(group_id, message)
 
+
+
 ################################ Discord  ################################
 #Discord Webhook
-hook = Webhook('https://discord.com/api/webhooks/1308807125492826212/QFqPbXu3TKZoIVgxPB0oYl1O3VOkoUOD2dYu9sDO4OG1OpbGlirJLwj57hUIzze5BETA')
+discord_info = open_csv("./data/discord")
+hook = Webhook(discord_info["Webhook"][0])
 def discord_send(message):
     hook.send(message)
 
-################################ 前置函數 ################################
-def sql_search(table) -> pd.DataFrame:
-    db = pymysql.connect(host='localhost', port=3306, user='fcuemsadmin', passwd='FCUems@2541', charset='utf8', db='fcuems')
-    sql = "SELECT * FROM `"+ table +"`"
-    data = pd.read_sql(sql, db)
-    db.close()
-    return data
 
-def Time() -> str:
-    now = datetime.datetime.now().strftime("%Y年%m月%d日 %H時%M分%S秒")
-    return now
-
-def mail_msg(who: str) -> email.message.EmailMessage:
-    msg = email.message.EmailMessage()
-    msg["From"] = "jw.albert.tw@gmail.com"
-    msg["To"] = who
-    msg["Subject"] = f"逢甲大學 緊急事件通報系統 案件類型 「{case_table[session['case']]}」 緊急事件通知 (測試中)"
-    msg.set_content(session.get('message', ''))
-    return msg
-
-def send_mail(sql :str) -> None:
-    mail_data = sql_search(sql)
-    server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-    server.login("jw.albert.tw@gmail.com", "ymmfjhcezfxrjwom")
-    for email in mail_data["EMAIL"]:
-        msg = mail_msg(email)
-        server.send_message(msg)
-    server.close()
 
 ################################ 主程式 ################################
 case_table = {1: "危急", 2: "一般"}
@@ -109,7 +128,6 @@ event_table = {1: "OHCA(暈倒)", 2: "內科", 3: "外科"}
 locat_table = {1: "行政大樓", 2: "行政二館", 3: "紀念館", 4: "圖書館", 5: "科航", 6: "商學", 7: "忠勤", 8: "建築", 9: "語文", 10: "工學",
                11: "人言", 12: "資電", 13: "人社", 14: "電通", 15: "育樂", 16: "土木", 17: "理學", 18: "學思", 19: "體育館", 20: "文創中心",
                21: "共善"}
-group_id = "C3813a6d30efe51a2cb7754ff7add0257"
 
 @app.route("/")
 @app.route("/Inform/01_Case")
@@ -197,6 +215,7 @@ def Inform_09_Sending():
     
     # 使用多行字串組合訊息
     session['message'] = (
+        "緊急事件通報 (測試中)\n"
         f"案件類型：{case_table[session['case']]}\n"
         f"案件分類：{event_table[session['event']]}\n"
         f"案件地點：{session['locat_table'][session['locat']]}\n"
