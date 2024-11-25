@@ -20,6 +20,7 @@
 - **後端框架**: Flask
 - **前端技術**: HTML、CSS
 - **資料庫**: MySQL，使用 PyMySQL 驅動進行連接與操作
+- **帳號存取**: CSV 檔案
 - **伺服器環境**: Debian 10
 - **其他**: LINE Bot API 用於訊息廣播功能
 
