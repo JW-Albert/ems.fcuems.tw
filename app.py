@@ -10,7 +10,7 @@ import pandas as pd
 from dhooks import Webhook
 
 app = Flask(__name__, static_folder="static", static_url_path="/")
-app.secret_key = 'FCUems2541'
+app.secret_key = 'secret_key'
 app.config['SESSION_TYPE'] = 'filesystem'
 
 
@@ -37,7 +37,7 @@ def Time() -> str:
 
 def mail_msg(who: str) -> email.message.EmailMessage:
     msg = email.message.EmailMessage()
-    msg["From"] = "jw.albert.tw@gmail.com"
+    msg["From"] = "自己填你的"
     msg["To"] = who
     msg["Subject"] = f"逢甲大學 緊急事件通報系統 案件類型 「{case_table[session['case']]}」 緊急事件通知 (測試中)"
     msg.set_content(session.get('message', ''))
@@ -46,7 +46,7 @@ def mail_msg(who: str) -> email.message.EmailMessage:
 def send_mail(sql :str) -> None:
     mail_data = sql_search(sql)
     server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-    server.login("jw.albert.tw@gmail.com", "ymmfjhcezfxrjwom")
+    server.login("自己填你的", "自己去設定")
     for email in mail_data["EMAIL"]:
         msg = mail_msg(email)
         server.send_message(msg)
