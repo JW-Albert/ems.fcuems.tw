@@ -115,6 +115,60 @@
             .button:hover {
                 opacity: 0.8;
             }
+
+            /* 自定義下拉列表容器 */
+            .custom-select-container {
+                position: relative;
+                width: 100%;
+                max-width: 500px;
+                margin: 0 auto;
+            }
+
+            /* 下拉列表樣式 */
+            .custom-select-options {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                max-height: 300px;
+                overflow-y: auto;
+                background: white;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                z-index: 1000;
+            }
+
+            /* 下拉選項樣式 */
+            .custom-select-option {
+                padding: 12px 15px;
+                cursor: pointer;
+                transition: background-color 0.2s;
+                font-size: 18px;
+            }
+
+            .custom-select-option:hover {
+                background-color: #f0f0f0;
+            }
+
+            /* 美化滾動條 */
+            .custom-select-options::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            .custom-select-options::-webkit-scrollbar-track {
+                background: #f1f1f1;
+            }
+
+            .custom-select-options::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 4px;
+            }
+
+            .custom-select-options::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
         </style>
         <script>
             let selectedButtonValue = null;
@@ -156,6 +210,59 @@
 
                 return true; // 允許提交
             }
+
+            // 添加新的 JavaScript 函數
+            function setupCustomSelect() {
+                const input = document.getElementById('customLocation');
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'custom-select-options';
+                
+                // 獲取所有選項
+                const options = Array.from(document.getElementById('options').options).map(opt => opt.value);
+                
+                // 創建選項元素
+                options.forEach(optionText => {
+                    const option = document.createElement('div');
+                    option.className = 'custom-select-option';
+                    option.textContent = optionText;
+                    option.onclick = () => {
+                        input.value = optionText;
+                        optionsContainer.style.display = 'none';
+                        clearButtonSelection();
+                    };
+                    optionsContainer.appendChild(option);
+                });
+
+                // 將容器添加到輸入框後面
+                input.parentNode.appendChild(optionsContainer);
+
+                // 輸入框焦點事件
+                input.onfocus = () => {
+                    optionsContainer.style.display = 'block';
+                };
+
+                // 點擊其他地方時隱藏選項
+                document.addEventListener('click', (e) => {
+                    if (!input.contains(e.target) && !optionsContainer.contains(e.target)) {
+                        optionsContainer.style.display = 'none';
+                    }
+                });
+
+                // 輸入框輸入事件
+                input.oninput = () => {
+                    const value = input.value.toLowerCase();
+                    Array.from(optionsContainer.children).forEach(option => {
+                        const matches = option.textContent.toLowerCase().includes(value);
+                        option.style.display = matches ? 'block' : 'none';
+                    });
+                    optionsContainer.style.display = 'block';
+                };
+            }
+
+            // 頁面加載完成後初始化
+            window.onload = function() {
+                setupCustomSelect();
+            };
         </script>
     </head>
     <body>
@@ -167,35 +274,37 @@
             <!-- 手動輸入框 -->
             <div class="input-container">
                 <label for="customLocation">手動輸入地點：</label>
-                <input type="text" id="customLocation" name="customLocation" placeholder="請輸入地點" oninput="clearButtonSelection()">
+                <div class="custom-select-container">
+                    <input type="text" id="customLocation" name="customLocation" placeholder="請輸入地點" oninput="clearButtonSelection()">
+                </div>
+                <!-- 添加隱藏的 datalist -->
+                <datalist id="options">
+                    <option value="行政大樓"></option>
+                    <option value="行政二館"></option>
+                    <option value="紀念館"></option>
+                    <option value="圖書館"></option>
+                    <option value="科航"></option>
+                    <option value="商學"></option>
+                    <option value="忠勤"></option>
+                    <option value="建築"></option>
+                    <option value="語文"></option>
+                    <option value="工學"></option>
+                    <option value="人言"></option>
+                    <option value="資電"></option>
+                    <option value="人社"></option>
+                    <option value="電通"></option>
+                    <option value="育樂"></option>
+                    <option value="土木"></option>
+                    <option value="理學"></option>
+                    <option value="學思"></option>
+                    <option value="體育館"></option>
+                    <option value="文創中心"></option>
+                </datalist>
             </div>
 
             <!-- 隱藏的輸入框用於提交選中按鈕的值 -->
             <input type="hidden" id="selectedButtonInput" name="selectedButtonInput" value="">
 
-            <!-- 按鈕選擇 -->
-            <div class="button-container">
-                <button type="button" value="1" onclick="selectButton(this)">行政大樓</button>
-                <button type="button" value="2" onclick="selectButton(this)">行政二館</button>
-                <button type="button" value="3" onclick="selectButton(this)">紀念館</button>
-                <button type="button" value="4" onclick="selectButton(this)">圖書館</button>
-                <button type="button" value="5" onclick="selectButton(this)">科航</button>
-                <button type="button" value="6" onclick="selectButton(this)">商學</button>
-                <button type="button" value="7" onclick="selectButton(this)">忠勤</button>
-                <button type="button" value="8" onclick="selectButton(this)">建築</button>
-                <button type="button" value="9" onclick="selectButton(this)">語文</button>
-                <button type="button" value="10" onclick="selectButton(this)">工學</button>
-                <button type="button" value="11" onclick="selectButton(this)">人言</button>
-                <button type="button" value="12" onclick="selectButton(this)">資電</button>
-                <button type="button" value="13" onclick="selectButton(this)">人社</button>
-                <button type="button" value="14" onclick="selectButton(this)">電通</button>
-                <button type="button" value="15" onclick="selectButton(this)">育樂</button>
-                <button type="button" value="16" onclick="selectButton(this)">土木</button>
-                <button type="button" value="17" onclick="selectButton(this)">理學</button>
-                <button type="button" value="18" onclick="selectButton(this)">學思</button>
-                <button type="button" value="19" onclick="selectButton(this)">體育館</button>
-                <button type="button" value="20" onclick="selectButton(this)">文創中心</button>
-            </div>
 
             <!-- 底部按鈕 -->
             <div class="footer-buttons">
