@@ -16,7 +16,7 @@ app.config['SESSION_TYPE'] = 'filesystem'
 
 
 # 廣播寄送控制
-line = 0
+line = 1
 discord = 1
 mail = 0
 t_mail = 0 #資料庫尚未建置
@@ -39,7 +39,7 @@ def mail_msg(who: str) -> email.message.EmailMessage:
     msg = email.message.EmailMessage()
     msg["From"] = "自己填你的"
     msg["To"] = who
-    msg["Subject"] = f"逢甲大學 緊急事件通報系統 案件類型 「{case_table[session['case']]}」 緊急事件通知 (測試中)"
+    msg["Subject"] = f"逢甲大學 緊急事件通報系統 案件類型 「{case_table[session['case']]}」 緊急事件通知"
     msg.set_content(session.get('message', ''))
     return msg
 
@@ -215,7 +215,7 @@ def Inform_09_Sending():
     
     # 使用多行字串組合訊息
     session['message'] = (
-        "緊急事件通報 (測試中)\n"
+        "緊急事件通報\n"
         f"案件類型：{case_table[session['case']]}\n"
         f"案件分類：{event_table[session['event']]}\n"
         f"案件地點：{session['locat_table'][session['locat']]}\n"
