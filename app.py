@@ -107,7 +107,7 @@ def send_group_message(group_id, message):
 # 寄送報警訊息
 def broadcast_message(group_id, message):
     # 寄送予好友
-    send_person_message(message)
+    # send_person_message(message)
     # 寄送予群組
     send_group_message(group_id, message)
 
