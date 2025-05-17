@@ -1,47 +1,213 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset = "utf-8" />
-        <title>逢甲大學 緊急事件通報系統｜隱私權保護政策</title>
-        <link rel="icon" href="favicon.ico" type="image/x-icon">
-    </head>
-    <body>
-        <h3>一、隱私權保護政策的適用範圍</h3>
-        <ul>
-            <li>隱私權保護政策內容，包括本網站如何處理在您使用網站服務時收集到的個人識別資料。</li>
-            <li>隱私權保護政策不適用於本網站以外的相關連結網站 ，也不適用於非本網站所委託或參與管理的人員。</li>
-        </ul>
 
-        <h3>二、資料的蒐集與使用方式</h3>
-        <p>為了在本網站上提供您最佳的互動性服務，可能會請您提供相關個人的資料，其範圍如下：</p>
-        <ul>
-            <li>本網站在您使用服務信箱、問卷調查等互動性功能時，會保留您所提供的姓名、電子郵件地址、連絡方式及使用時間等。</li>
-            <li>於一般瀏覽時，伺服器會自行記錄相關行徑，包括您使用連線設備的IP位址、使用時間、使用的瀏覽器、瀏覽及點選資料記錄等，做為我們增進網站服務的參考依據，此記錄為無聊有限公司，決不對外公佈。</li>
-            <li>為提供精確的服務，我們會將收集的問卷調查內容進行統計與分析，分析結果將之統計後的數據或說明文字呈現，除供內部研究外，我們會視需要公佈該數據及說明文字，但不涉及特定個人之資料。</li>
-            <li>除非取得您的同意或其他法令之特別規定，本網站絕不會將您的個人資料揭露於第三人或使用於蒐集目的以外之其他用途。</li>
-        </ul>
+<head>
+    <meta charset="utf-8" />
+    <title>逢甲大學 緊急事件通報系統｜隱私權保護政策</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-        <h3>三、資料之保護</h3>
-        <ul>
-            <li>本網站主機均設有防火牆、防毒系統等相關的各項資訊安全設備及必要的安全防護措施，加以保護網站及您的個人資料採用嚴格的保護措施，只由經過授權的人員才能接觸您的個人資料，相關處理人員皆簽有保密合約，如有違反保密義者，將會受到相關的法律處分。</li>
-            <li>如因業務需要有必要委託本部相關單位提供服務時，本網站亦會嚴格要求其遵守保密義務，並且採取必要檢查程序以確定其將確實遵守。</li>
-        </ul>
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
 
+        .title {
+            background-color: #8B4513;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 2em;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
 
-        <h3>四、網站對外的相關連結</h3>
-        <ul>
-            <li>本網站的網頁提供其他網站的網路連結，您也可經由本網站所提供的連結，點選進入其他網站。但該連結網站中不適用於本網站的隱私權保護政策，您必須參考該連結網站中的隱私權保護政策。</li>
-        </ul>
+        .policy-container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 30px;
+        }
 
-        <h3>五、Cookie之使用</h3>
-        <ul>
-            <li>為了提供您最佳的服務，本網站會在您的電腦中放置並取用我們的Cookie ，若您不願接受Cookie的寫入，您可在您使用的瀏覽器功能項中設定隱私權等級為高，即可拒絕Cookie的寫入，但可能會導至網站某些功能無法正常執行 。</li>
-        </ul>
+        .policy-section {
+            margin-bottom: 30px;
+        }
 
-        <h3>六、隱私權保護政策之修正</h3>
-        <ul>
-            <li>本網站隱私權保護政策將因應需求隨時進行修正，修正後的條款將刊登於網站上。</li>
-        </ul>
-        <h2 align = "center"><input type = "button" value = "回到上一頁" style="width:120px;height:40px;font-size:20px;" onclick = "history.back()"></h2>
-    </body>
+        .policy-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            color: #8B4513;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .section-content {
+            color: #333;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        .section-content p {
+            margin-bottom: 15px;
+        }
+
+        .section-content ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+
+        .section-content li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .section-content li:before {
+            content: "•";
+            color: #8B4513;
+            position: absolute;
+            left: 0;
+            font-size: 1.2em;
+        }
+
+        .back-button {
+            background-color: #8B4513;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .back-button:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 1.5em;
+                padding: 15px;
+            }
+
+            .policy-container {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.2em;
+            }
+
+            .section-content {
+                font-size: 1em;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+
+<body>
+    <h1 class="title">隱私權保護政策</h1>
+
+    <div class="policy-container">
+        <div class="policy-section">
+            <h2 class="section-title">一、隱私權保護政策的適用範圍</h2>
+            <div class="section-content">
+                <ul>
+                    <li>隱私權保護政策內容，包括本網站如何處理在您使用網站服務時收集到的個人識別資料。</li>
+                    <li>隱私權保護政策不適用於本網站以外的相關連結網站，也不適用於非本網站所委託或參與管理的人員。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="policy-section">
+            <h2 class="section-title">二、資料的蒐集與使用方式</h2>
+            <div class="section-content">
+                <p>為了在本網站上提供您最佳的互動性服務，可能會請您提供相關個人的資料，其範圍如下：</p>
+                <ul>
+                    <li>本網站在您使用服務信箱、問卷調查等互動性功能時，會保留您所提供的姓名、電子郵件地址、連絡方式及使用時間等。</li>
+                    <li>於一般瀏覽時，伺服器會自行記錄相關行徑，包括您使用連線設備的IP位址、使用時間、使用的瀏覽器、瀏覽及點選資料記錄等，做為我們增進網站服務的參考依據，此記錄為無聊有限公司，決不對外公佈。
+                    </li>
+                    <li>為提供精確的服務，我們會將收集的問卷調查內容進行統計與分析，分析結果將之統計後的數據或說明文字呈現，除供內部研究外，我們會視需要公佈該數據及說明文字，但不涉及特定個人之資料。</li>
+                    <li>除非取得您的同意或其他法令之特別規定，本網站絕不會將您的個人資料揭露於第三人或使用於蒐集目的以外之其他用途。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="policy-section">
+            <h2 class="section-title">三、資料之保護</h2>
+            <div class="section-content">
+                <ul>
+                    <li>本網站主機均設有防火牆、防毒系統等相關的各項資訊安全設備及必要的安全防護措施，加以保護網站及您的個人資料採用嚴格的保護措施，只由經過授權的人員才能接觸您的個人資料，相關處理人員皆簽有保密合約，如有違反保密義者，將會受到相關的法律處分。
+                    </li>
+                    <li>如因業務需要有必要委託本部相關單位提供服務時，本網站亦會嚴格要求其遵守保密義務，並且採取必要檢查程序以確定其將確實遵守。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="policy-section">
+            <h2 class="section-title">四、網站對外的相關連結</h2>
+            <div class="section-content">
+                <ul>
+                    <li>本網站的網頁提供其他網站的網路連結，您也可經由本網站所提供的連結，點選進入其他網站。但該連結網站中不適用於本網站的隱私權保護政策，您必須參考該連結網站中的隱私權保護政策。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="policy-section">
+            <h2 class="section-title">五、Cookie之使用</h2>
+            <div class="section-content">
+                <ul>
+                    <li>為了提供您最佳的服務，本網站會在您的電腦中放置並取用我們的Cookie，若您不願接受Cookie的寫入，您可在您使用的瀏覽器功能項中設定隱私權等級為高，即可拒絕Cookie的寫入，但可能會導至網站某些功能無法正常執行。
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="policy-section">
+            <h2 class="section-title">六、隱私權保護政策之修正</h2>
+            <div class="section-content">
+                <ul>
+                    <li>本網站隱私權保護政策將因應需求隨時進行修正，修正後的條款將刊登於網站上。</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <button class="back-button" onclick="history.back()">
+        <i class="fas fa-arrow-left"></i> 返回
+    </button>
+</body>
+
 </html>

@@ -1,15 +1,144 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset = "utf-8" />
-        <title>逢甲大學 緊急事件通報系統</title>
-        <link rel="icon" href="favicon.ico" type="image/x-icon">
-    </head>
-    <body>
-        <h2 align = "center"><font color = CoconutBrown>版權聲明</font></h2>
-        <h3 align = "center"><font color = Cornflowerblue>版權擁有者：　</font><font color = black>王建葦</font></h3>
-        <h3 align = "center"><font color = Cornflowerblue>授權使用者：　</font><font color = black>逢甲大學 衛保救護隊</font></h3>
-        <h3 align = "center"><font color = Cornflowerblue>版本：</font>Alpha 1.0.0</h3>
-        <h3 align = "center"><input type = "button" value = "返回" style="width:120px;height:40px;font-size:20px;" onclick = "history.back()"></h3>
-    </body>
+
+<head>
+    <meta charset="utf-8" />
+    <title>逢甲大學 緊急事件通報系統</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .title {
+            background-color: #8B4513;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 2em;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .copyright-container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .copyright-item {
+            margin: 20px 0;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .copyright-item:last-child {
+            border-bottom: none;
+        }
+
+        .copyright-label {
+            color: #8B4513;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .copyright-value {
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .version {
+            color: #666;
+            font-size: 1.1em;
+            margin-top: 30px;
+        }
+
+        .back-button {
+            background-color: #8B4513;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .back-button:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 1.5em;
+                padding: 15px;
+            }
+
+            .copyright-container {
+                padding: 30px;
+            }
+
+            .copyright-label {
+                font-size: 1.1em;
+            }
+
+            .copyright-value {
+                font-size: 1em;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+
+<body>
+    <h1 class="title">版權聲明</h1>
+
+    <div class="copyright-container">
+        <div class="copyright-item">
+            <div class="copyright-label">版權擁有者</div>
+            <div class="copyright-value">王建葦、李信緯</div>
+        </div>
+        <div class="copyright-item">
+            <div class="copyright-label">授權使用者</div>
+            <div class="copyright-value">逢甲大學 衛保救護隊</div>
+        </div>
+        <div class="version">2.0.0</div>
+    </div>
+
+    <button class="back-button" onclick="history.back()">
+        <i class="fas fa-arrow-left"></i> 返回
+    </button>
+</body>
+
 </html>

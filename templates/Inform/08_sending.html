@@ -1,14 +1,102 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset = "utf-8" />
-        <title>逢甲大學 緊急事件通報系統｜廣播訊息傳送中</title>
-        <link rel="icon" href="favicon.ico" type="image/x-icon">
-        <meta http-equiv="refresh" content="0 ;url = /Inform/09_Sending" />
-    </head>
-    <body>
-        <h2 align = "center"><font color = CoconutBrown>廣播訊息傳送中</font></h2>
-        <h3 align = "center"></h3align>請勿關閉網站</h3>
-        <h3 align = "center">網頁將自動連線</h3>
-    </body>
+
+<head>
+    <meta charset="utf-8" />
+    <title>逢甲大學 緊急事件通報系統｜廣播訊息傳送中</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="0;url=/Inform/09_Sending" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .title {
+            background-color: #8B4513;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 2em;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .message-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .message {
+            font-size: 1.2em;
+            color: #333;
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #8B4513;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px 0;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 1.5em;
+                padding: 15px;
+            }
+
+            .message {
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1 class="title">廣播訊息傳送中</h1>
+
+    <div class="message-container">
+        <div class="loading"></div>
+        <p class="message">請勿關閉網站</p>
+        <p class="message">網頁將自動連線</p>
+    </div>
+</body>
+
 </html>

@@ -1,90 +1,184 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <title>逢甲大學 緊急事件通報系統</title>
-        <link rel="icon" href="favicon.ico" type="image/x-icon">
-        <style>
-            /* 樣式設置 */
-            body {
-                font-family: Arial, sans-serif;
-                display: flex;
+
+<head>
+    <meta charset="utf-8" />
+    <title>逢甲大學 緊急事件通報系統</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .title {
+            background-color: #8B4513;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 2em;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            color: #4CAF50;
+            font-size: 1.5em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .info-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #666;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .info-value {
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .info-value a {
+            color: #8B4513;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .info-value a:hover {
+            color: #6B3410;
+            text-decoration: underline;
+        }
+
+        .server-status {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .back-button {
+            background-color: #8B4513;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .back-button:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 1.5em;
+                padding: 15px;
+            }
+
+            .subtitle {
+                font-size: 1.2em;
+            }
+
+            .info-item {
                 flex-direction: column;
-                align-items: center;
-                margin: 0;
-                padding: 20px;
-                background-color: #f5f5f5;
+                align-items: flex-start;
+                gap: 5px;
             }
 
-            h1 {
-                color: #8B4513; /* CoconutBrown 顏色 */
-                font-size: 36px;
-                font-weight: bold;
-                margin: 10px 0;
-                text-align: center;
-            }
-
-            h2 {
-                color: green;
-                font-size: 28px;
-                margin: 5px 0 20px 0;
-                text-align: center;
-            }
-
-            .info-container {
-                font-size: 18px;
-                line-height: 1.8;
-                color: #333;
-                max-width: 600px;
+            .info-value {
                 width: 100%;
-                padding: 20px;
-                background-color: #fff;
-                border: 1px solid #ccc;
-                border-radius: 8px;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
 
-            .info-container span {
-                font-weight: bold;
-                color: #333;
-            }
+<body>
+    <h1 class="title">網站資料</h1>
+    <h2 class="subtitle">服務中</h2>
 
-            .server-status {
-                color: green;
-                font-weight: bold;
-            }
-
-            .back-button {
-                margin-top: 30px;
-                width: 120px;
-                height: 40px;
-                font-size: 20px;
-                cursor: pointer;
-                border: none;
-                border-radius: 5px;
-                background-color: #007bff;
-                color: #fff;
-            }
-
-            .back-button:hover {
-                background-color: #0056b3;
-            }
-        </style>
-    </head>
-    <body>
-        <h1>網站資料</h1>
-        <h2>服務中</h2>
-
-        <div class="info-container">
-            <p><span>伺服器管理員：</span>王建葦</p>
-            <p><span>管理員信箱：</span><a href="mailto:jw.albert.tw@gmail.com">jw.albert.tw@gmail.com</a></p>
-            <p><span>最後更新時間：</span>2024/11/21 (四)</p>
-            <p><span>伺服器狀態：</span><span class="server-status">RUNNING</span></p>
-            <p><span>主機名稱：</span>fcuems</p>
-            <p><span>主機系統：</span>Debian 10</p>
-            <p><span>伺服器DNS：</span>ems.jw-albert.tw</p>
+    <div class="info-container">
+        <div class="info-item">
+            <span class="info-label">伺服器管理員</span>
+            <span class="info-value">王建葦</span>
         </div>
+        <div class="info-item">
+            <span class="info-label">管理員信箱</span>
+            <span class="info-value">
+                <a href="mailto:jw.albert.tw@gmail.com">jw.albert.tw@gmail.com</a>
+            </span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">最後更新時間</span>
+            <span class="info-value">2025/05/17 (六)</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">伺服器狀態</span>
+            <span class="info-value server-status">It Works!</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">主機名稱</span>
+            <span class="info-value">net3-fcuems</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">主機系統</span>
+            <span class="info-value">Debian 10.13</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">伺服器DNS</span>
+            <span class="info-value">www.fcuems.tw</span>
+        </div>
+    </div>
 
-        <button class="back-button" onclick="history.back()">回上一頁</button>
-    </body>
+    <button class="back-button" onclick="history.back()">
+        <i class="fas fa-arrow-left"></i> 回上一頁
+    </button>
+</body>
+
 </html>

@@ -1,84 +1,164 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <title>逢甲大學 緊急事件通報系統｜填寫｜案件分類</title>
-        <link rel="icon" href="favicon.ico" type="image/x-icon">
-        <style>
-            /* 固定標題位置，文字放大 */
-            h2.title {
-                position: fixed;
-                top: 0;
-                width: 100%;
-                text-align: center;
-                color: brown;
-                margin: 0;
-                padding: 20px 0;
-                background-color: white;
-                font-size: 48px; /* 放大標題文字 */
-                font-weight: bold;
-                border-bottom: 2px solid #ccc;
-                z-index: 1000;
-            }
 
-            /* 置中表單與按鈕區 */
-            body {
-                display: flex;
+<head>
+    <meta charset="utf-8" />
+    <title>逢甲大學 緊急事件通報系統｜填寫｜案件分類</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title {
+            background-color: #8B4513;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 2em;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            gap: 30px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .event-button {
+            flex: 1;
+            min-width: 250px;
+            padding: 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+
+        .event-button.ohca {
+            background-color: #ff4444;
+        }
+
+        .event-button.medical {
+            background-color: #2196F3;
+        }
+
+        .event-button.surgical {
+            background-color: #4CAF50;
+        }
+
+        .event-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .event-button:active {
+            transform: translateY(0);
+        }
+
+        .event-button i {
+            font-size: 2.5em;
+        }
+
+        .event-button .description {
+            font-size: 0.6em;
+            font-weight: normal;
+            text-align: center;
+            opacity: 0.9;
+        }
+
+        .back-button {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background-color: #666;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-button:hover {
+            background-color: #444;
+        }
+
+        @media (max-width: 768px) {
+            .button-group {
                 flex-direction: column;
-                justify-content: center; /* 垂直置中 */
-                align-items: center; /* 水平置中 */
-                height: 100vh;
-                margin: 0;
-                padding-top: 80px; /* 保留上方空間給標題 */
-                padding-bottom: 80px; /* 保留下方空間給取消按鈕 */
-                box-sizing: border-box;
             }
 
-            form {
-                display: flex;
-                justify-content: center; /* 讓按鈕水平置中 */
-                gap: 20px; /* 按鈕間距 */
+            .event-button {
+                width: 100%;
             }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
 
-            /* 按鈕樣式 */
-            button {
-                font-size: 36px; /* 增大字體 */
-                padding: 20px 40px; /* 按鈕內距 */
-                border: 3px solid black; /* 添加外框 */
-                border-radius: 10px; /* 外框圓角 */
-                cursor: pointer;
-                color: red; /* 文字顏色改為紅色 */
-                background-color: white; /* 背景顏色 */
-            }
+<body>
+    <h1 class="title">案件分類</h1>
 
-            /* 按鈕文字粗體 */
-            button h3 {
-                margin: 0;
-                font-weight: bold;
-            }
-
-            /* 取消重填按鈕 */
-            .cancel-button {
-                position: fixed;
-                bottom: 20px; /* 固定於底部 */
-                font-size: 20px;
-                width: 120px;
-                height: 40px;
-            }
-        </style>
-    </head>
-    <body>
-        <!-- 固定在最上方的標題 -->
-        <h2 class="title">案件分類</h2>
-        
-        <!-- 置中的表單按鈕 -->
-        <form action="/Inform/Read_02_Event" method="POST">
-            <button type="submit" name="event" value="1" class="btn-critical"><h3>OHCA(暈倒)</h3></button>
-            <button type="submit" name="event" value="2" class="btn-serious"><h3>內科</h3></button>
-            <button type="submit" name="event" value="3" class="btn-normal"><h3>外科</h3></button>
+    <div class="container">
+        <form action="/Inform/Read_02_Event" method="POST" class="button-group">
+            <button type="submit" name="event" value="1" class="event-button ohca">
+                <i class="fas fa-heartbeat"></i>
+                <span>OHCA</span>
+                <div class="description">心肺功能停止，需要立即CPR</div>
+            </button>
+            <button type="submit" name="event" value="2" class="event-button medical">
+                <i class="fas fa-stethoscope"></i>
+                <span>內科</span>
+                <div class="description">如：頭暈、胸痛、呼吸困難等</div>
+            </button>
+            <button type="submit" name="event" value="3" class="event-button surgical">
+                <i class="fas fa-band-aid"></i>
+                <span>外科</span>
+                <div class="description">如：外傷、骨折、出血等</div>
+            </button>
         </form>
-        
-        <!-- 固定於頁面最下方的取消重填按鈕 -->
-        <input type="button" value="返回" class="cancel-button" onclick="history.back()">
-    </body>
+    </div>
+
+    <button class="back-button" onclick="history.back()">
+        <i class="fas fa-arrow-left"></i> 返回
+    </button>
+</body>
+
 </html>
