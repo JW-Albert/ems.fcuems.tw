@@ -204,7 +204,6 @@ locat_table = {
 }
 
 
-@app.route("/")
 @app.route("/Inform/01_Case")
 def Inform_01_Case():
     session["case"] = 0
@@ -221,9 +220,15 @@ def Inform_Read_01_Case():
     session["case"] = int(request.form.get("case"))
     return redirect("/Inform/02_Event")
 
-
+@app.route("/")
 @app.route("/Inform/02_Event")
 def Inform_02_Event():
+    # 因為主頁改為02_event，所以在此重置變數
+    session["event"] = 0
+    session["locat"] = "0"
+    session["room"] = "NULL"
+    session["content"] = ""
+    session["message"] = "NULL"
     return render_template("/Inform/02_event.html")
 
 
@@ -257,7 +262,6 @@ def Inform_Read_03_Location():
 
     return redirect("/Inform/05_Room")
 
-
 @app.route("/Inform/05_Room")
 def Inform_05_Room():
     return render_template("/Inform/05_room.html")
@@ -265,7 +269,10 @@ def Inform_05_Room():
 
 @app.route("/Inform/Read_05_Room", methods=["POST"])
 def Inform_Read_05_Room():
-    session["room"] = request.form.get("room")
+    room = request.form.get("room")
+    if (len(room) == 1):
+        room = room + " 樓"
+    session["room"] = room
     return redirect("/Inform/06_Content")
 
 
@@ -284,7 +291,7 @@ def Inform_Read_06_Content():
 def Inform_07_Check():
     return render_template(
         "/Inform/07_check.html",
-        case=case_table[session["case"]],
+        # case=case_table[session["case"]],
         event=event_table[session["event"]],
         locat=session["locat_table"][session["locat"]],
         room=session["room"],
@@ -305,12 +312,12 @@ def Inform_09_Sending():
     # 使用多行字串組合訊息
     session["message"] = (
         "緊急事件通報\n"
-        f"案件類型：{case_table[session['case']]}\n"
-        f"案件分類：{event_table[session['event']]}\n"
-        f"案件地點：{session['locat_table'][session['locat']]}\n"
-        f"案件位置：{session['room']}\n"
+        # f"案件類型：{case_table[session['case']]}\n"
+        f"案件分類： {event_table[session['event']]}\n"
+        f"案件地點： {session['locat_table'][session['locat']]}\n"
+        f"案件位置： {session['room']}\n"
         f"案件補充：\n\t{content_with_tabs}\n"
-        f"通報時間：{Time()}"
+        f"通報時間： {Time()}"
     )
 
     if discord == 1:
