@@ -7,7 +7,9 @@ import email.message
 import smtplib
 import pymysql
 import pandas as pd
+import logging
 from dhooks import Webhook
+import os
 
 app = Flask(__name__, static_folder="static", static_url_path="/")
 app.secret_key = "secret_key"
@@ -76,6 +78,44 @@ handler = WebhookHandler(line_bot_info["WebhookHandler"][0])
 
 group_id = open_csv("data/line_group")
 group_id = group_id["group_id"][0]
+
+# 確保 logs 目錄存在
+if not os.path.exists("logs"):
+    os.makedirs("logs")
+
+# 使用當前日期作為日誌文件名
+current_date = datetime.datetime.now().strftime("%Y%m%d")
+log_filename = f"logs/flask_app_{current_date}.log"
+
+logging.basicConfig(
+    filename=log_filename,
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
+
+
+def get_real_ip():
+    if request.headers.get("CF-Connecting-IP"):
+        return request.headers["CF-Connecting-IP"]
+    elif request.headers.get("X-Forwarded-For"):
+        return request.headers["X-Forwarded-For"].split(",")[0]
+    else:
+        return request.remote_addr
+
+
+@app.before_request
+def log_request_info():
+    ip = get_real_ip()
+    method = request.method
+    path = request.path
+    user_agent = request.headers.get("User-Agent", "Unknown")
+    logging.info(f"Access: IP={ip} Method={method} Path={path} User-Agent={user_agent}")
+
+
+@app.after_request
+def log_response_info(response):
+    logging.info(f"Response: Status={response.status_code} Path={request.path}")
+    return response
 
 
 @app.route("/bot/callback", methods=["POST"])
@@ -160,7 +200,7 @@ locat_table = {
     18: "學思",
     19: "體育館",
     20: "文創中心",
-    21: "共善"
+    21: "共善",
 }
 
 
