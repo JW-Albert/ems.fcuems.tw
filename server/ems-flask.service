@@ -1,0 +1,14 @@
+[Unit]
+Description=EMS Flask Application
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/var/www/ems/web
+ExecStart=/bin/bash -c 'source /var/www/ems/venv/bin/activate && cd /var/www/ems/web && FLASK_APP=app.py && flask run --host=0.0.0.0 --port=80'
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
