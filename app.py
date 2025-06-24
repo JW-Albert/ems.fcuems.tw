@@ -18,7 +18,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 # 廣播寄送控制
 line = 1
 discord = 1
-mail = 1
+mail = 0
 
 
 def sql_search(table) -> pd.DataFrame:
