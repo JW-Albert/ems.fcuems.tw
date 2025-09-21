@@ -9,9 +9,6 @@ sudo apt update -y && sudo apt upgrade -y
 echo "Installing dependencies python3 python3-pip python3-venv python3-dev..."
 sudo apt install -y python3 python3-pip python3-venv python3-dev
 
-echo "Creating directory /var/www/ems..."
-mkdir -p /var/www/ems
-
 echo "Changing directory..."
 cd /var/www/ems
 
@@ -23,4 +20,5 @@ source venv/bin/activate
 
 echo "Installing dependencies..."
 cd web
+
 pip3 install -r requirements.txt
