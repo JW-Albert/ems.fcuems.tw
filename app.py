@@ -24,49 +24,9 @@ discord = 1
 mail = 0
 
 
-def sql_search(table) -> pd.DataFrame:
-    db = pymysql.connect(
-        host="localhost",
-        port=3306,
-        user="fcuemsadmin",
-        passwd="FCUems@2541",
-        charset="utf8",
-        db="fcuems",
-    )
-    sql = "SELECT * FROM `" + table + "`"
-    data = pd.read_sql(sql, db)
-    db.close()
-    return data
-
-
 def Time() -> str:
     now = datetime.datetime.now().strftime("%Y年%m月%d日 %H時%M分%S秒")
     return now
-
-
-def mail_msg(who: str) -> email.message.EmailMessage:
-    msg = email.message.EmailMessage()
-    msg["From"] = "jw.albert.tw@gmail.com"
-    msg["To"] = who
-    msg["Subject"] = (
-        f"逢甲大學 緊急事件通報系統 案件類型 "
-        f"「{case_table[session['case']]}」 緊急事件通知"
-    )
-    msg.set_content(session.get("message", ""))
-    return msg
-
-
-def send_mail(sql: str) -> None:
-    # mail_data = sql_search(sql)
-    server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-    server.login("jw.albert.tw@gmail.com", "mudvtshfleshyesc")
-    # for email_addr in mail_data["EMAIL"]:
-    #     msg = mail_msg(email_addr)
-    #     server.send_message(msg)
-
-    msg = mail_msg("albert@mail.jw-albert.tw")
-    server.send_message(msg)
-    server.close()
 
 
 def open_csv(file: str) -> pd.DataFrame:
@@ -238,48 +198,31 @@ def schedule_discord_edit(message_id, original_message, delay_hours=1):
 
 
 # 主程式設定
-case_table = {1: "危急", 2: "非危急"}
 event_table = {1: "OHCA", 2: "內科", 3: "外科"}
 locat_table = {
     1: "行政大樓",
     2: "行政二館",
-    3: "紀念館",
+    3: "丘逢甲紀念館",
     4: "圖書館",
-    5: "科航",
-    6: "商學",
-    7: "忠勤",
-    8: "建築",
-    9: "語文",
-    10: "工學",
-    11: "人言",
-    12: "資電",
-    13: "人社",
-    14: "電通",
-    15: "育樂",
-    16: "土木",
-    17: "理學",
-    18: "學思",
+    5: "科學與航太館",
+    6: "商學大樓",
+    7: "忠勤樓",
+    8: "建築館",
+    9: "語文大樓",
+    10: "工學大樓",
+    11: "人言大樓",
+    12: "資訊電機館",
+    13: "人文社會館",
+    14: "電子通訊館",
+    15: "育樂館",
+    16: "土木水利館",
+    17: "理學大樓",
+    18: "學思樓",
     19: "體育館",
     20: "文創中心",
-    21: "共善",
+    21: "共善樓",
 }
 
-
-@app.route("/Inform/01_Case")
-def Inform_01_Case():
-    session["case"] = 0
-    session["event"] = 0
-    session["locat"] = "0"
-    session["room"] = "NULL"
-    session["content"] = ""
-    session["message"] = "NULL"
-    return render_template("/Inform/01_case.html")
-
-
-@app.route("/Inform/Read_01_Case", methods=["POST"])
-def Inform_Read_01_Case():
-    session["case"] = int(request.form.get("case"))
-    return redirect("/Inform/02_Event")
 
 @app.route("/")
 @app.route("/Inform/02_Event")
@@ -352,7 +295,6 @@ def Inform_Read_06_Content():
 def Inform_07_Check():
     return render_template(
         "/Inform/07_check.html",
-        # case=case_table[session["case"]],
         event=event_table[session["event"]],
         locat=session["locat_table"][session["locat"]],
         room=session["room"],
@@ -373,7 +315,6 @@ def Inform_09_Sending():
     # 使用多行字串組合訊息
     session["message"] = (
         "緊急事件通報\n"
-        # f"案件類型：{case_table[session['case']]}\n"
         f"案件分類： {event_table[session['event']]}\n"
         f"案件地點： {session['locat_table'][session['locat']]}\n"
         f"案件位置： {session['room']}\n"
@@ -385,8 +326,6 @@ def Inform_09_Sending():
         message_id = discord_send(session["message"] + "\n@everyone\n# [事件回覆](https://forms.gle/dww4orwk2RHSbVV2A)")
         if message_id:
             schedule_discord_edit(message_id, session["message"] + "\n@everyone\n# [事件回覆](https://forms.gle/dww4orwk2RHSbVV2A)")
-    if mail == 1:
-        send_mail("EMT")
     if line == 1:
         broadcast_message(group_id, session["message"])
 
