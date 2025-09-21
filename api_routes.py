@@ -273,7 +273,8 @@ class APIRoutes:
                         
                         # 讀取日誌檔案
                         if os.path.exists(log_filename):
-                            log_lines = logger_manager.read_log_file(f"flask_app_{date_str}.log")
+                            log_lines = logger_manager.read_log_file(os.path.basename(log_filename))
+                            logger_manager.log_user_action("日誌API調試", f"讀取到 {len(log_lines)} 行日誌")
                             
                             for line in log_lines:
                                 line = line.strip()
@@ -330,6 +331,10 @@ class APIRoutes:
                                     elif 'TEST' in message or '測試' in message:
                                         stats['tests'] += 1
                                     
+                                    # 記錄解析成功的日誌
+                                    if len(logs) <= 3:  # 只記錄前3條
+                                        logger_manager.log_user_action("日誌解析成功", f"解析第{len(logs)}條: {level}")
+                                    
                                 except Exception as e:
                                     continue
                         
@@ -340,6 +345,9 @@ class APIRoutes:
                 
                 # 按時間排序（最新的在前）
                 logs.sort(key=lambda x: x['timestamp'], reverse=True)
+                
+                # 記錄最終結果
+                logger_manager.log_user_action("日誌API結果", f"返回 {len(logs)} 條日誌，統計: {stats}")
                 
                 return jsonify({
                     "success": True,
