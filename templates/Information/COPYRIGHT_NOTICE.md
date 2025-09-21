@@ -1,4 +1,3 @@
-
 # 著作權宣告
 
 ## 版權擁有者
@@ -17,4 +16,4 @@
 
 若對於本系統的版權或授權有任何疑問，請聯絡管理員：
 - **管理員名稱**: 王建葦
-- **管理員信箱**: [jw.albert.tw@gmail.com](mailto:jw.albert.tw@gmail.com)
+- **管理員信箱**: [admin@mail.jw-albert.tw](mailto:admin@mail.jw-albert.tw)

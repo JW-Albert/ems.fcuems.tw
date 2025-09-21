@@ -1,4 +1,4 @@
-from flask import Flask, request, abort, render_template, redirect, session
+from flask import Flask, request, abort, render_template, redirect, session, jsonify
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, JoinEvent
@@ -13,9 +13,13 @@ import os
 import requests
 import threading
 import time
+from dotenv import load_dotenv
+
+# 載入環境變數
+load_dotenv("data/.env")
 
 app = Flask(__name__, static_folder="static", static_url_path="/")
-app.secret_key = "secret_key"
+app.secret_key = os.getenv("SECRET_KEY", "secret_key")
 app.config["SESSION_TYPE"] = "filesystem"
 
 # 廣播寄送控制
@@ -29,18 +33,13 @@ def Time() -> str:
     return now
 
 
-def open_csv(file: str) -> pd.DataFrame:
-    data = pd.read_csv(file + ".csv")
-    return data
-
-
 # LINE Bot 設定
-line_bot_info = open_csv("data/line_bot")
-line_bot_api = LineBotApi(line_bot_info["LineBotApi"][0])
-handler = WebhookHandler(line_bot_info["WebhookHandler"][0])
+line_bot_api_token = os.getenv("LINE_BOT_API_TOKEN")
+line_webhook_handler = os.getenv("LINE_WEBHOOK_HANDLER")
+line_bot_api = LineBotApi(line_bot_api_token)
+handler = WebhookHandler(line_webhook_handler)
 
-group_id = open_csv("data/line_group")
-group_id = group_id["group_id"][0]
+group_id = os.getenv("LINE_GROUP_ID")
 
 # 確保 logs 目錄存在
 if not os.path.exists("logs"):
@@ -131,8 +130,7 @@ def broadcast_message(group_id, message):
 
 
 # Discord Webhook
-discord_info = open_csv("data/discord_hook")
-webhook_url = discord_info["Webhook"][0]
+webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
 hook = Webhook(webhook_url)
 
 
@@ -335,6 +333,61 @@ def Inform_09_Sending():
 @app.route("/Inform/10_Sended")
 def Inform_10_Sended():
     return render_template("/Inform/10_sended.html")
+
+
+@app.route("/system/test")
+def system_test():
+    return render_template("/system/test.html")
+
+
+@app.route("/system/test/line", methods=["POST"])
+def test_line_bot():
+    """測試 LINE Bot 功能"""
+    try:
+        # 創建測試訊息
+        test_message = (
+            "🔧 系統測試訊息 / System Test Message\n"
+            f"測試時間： {Time()}\n"
+            "LINE Bot 功能正常運作！\n"
+            "LINE Bot is working properly!"
+        )
+        
+        # 發送測試訊息到群組
+        send_group_message(group_id, test_message)
+        
+        logging.info("LINE Bot test message sent successfully")
+        return jsonify({"success": True, "message": "LINE Bot 測試成功"})
+        
+    except Exception as e:
+        logging.error(f"LINE Bot test failed: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/system/test/discord", methods=["POST"])
+def test_discord():
+    """測試 Discord Webhook 功能"""
+    try:
+        # 創建測試訊息
+        test_message = (
+            "🔧 **系統測試訊息 / System Test Message**\n"
+            f"**測試時間：** {Time()}\n"
+            "Discord Webhook 功能正常運作！\n"
+            "Discord Webhook is working properly!"
+        )
+        
+        # 發送測試訊息
+        message_id = discord_send(test_message)
+        
+        if message_id:
+            logging.info(f"Discord test message sent successfully, ID: {message_id}")
+            return jsonify({"success": True, "message": "Discord 測試成功", "message_id": message_id})
+        else:
+            logging.error("Discord test message failed to send")
+            return jsonify({"success": False, "error": "Discord 訊息發送失敗"})
+        
+    except Exception as e:
+        logging.error(f"Discord test failed: {e}")
+        return jsonify({"success": False, "error": str(e)})
 
 
 # 靜態頁面路由

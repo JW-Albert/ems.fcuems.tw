@@ -1,102 +1,142 @@
 
-# 緊急事件通報系統
+# 緊急事件通報系統 / Emergency Management System
 
 本專案是為了逢甲大學衛保救護隊設計的緊急事件通報系統，旨在快速傳遞事件資訊，提升應急處理效率。
 
-## 協作指南
+This project is an emergency management system designed for the Feng Chia University Health and Safety Rescue Team, aimed at rapidly disseminating incident information and improving emergency response efficiency.
+
+## 協作指南 / Collaboration Guidelines
 
 請參閱 [協作指南](COLLABORATION_GUIDELINES.md)，了解提交流程與規範。
 
-## 功能簡介
+Please refer to [Collaboration Guidelines](COLLABORATION_GUIDELINES.md) for submission processes and standards.
 
-1. **案件類別與分類選擇** - 使用者可選擇事件的緊急程度與分類，例如內科、外科、OHCA 等。
-2. **地點與詳細資訊填寫** - 系統支援輸入事件地點、樓層及補充資訊。
-3. **即時確認與通知** - 系統提供案件確認頁面，並即時廣播訊息給相關人員。
-4. **伺服器錯誤與頁面未建置提醒** - 提供自訂的 404 和 500 錯誤頁面，提升使用體驗。
-5. **隱私與版權聲明** - 系統包含隱私權保護政策與版權宣告，確保資料使用合規。
+## 功能簡介 / Features
 
-## 使用技術
+1. **案件類別與分類選擇 / Case Category and Classification Selection** - 使用者可選擇事件的緊急程度與分類，例如內科、外科、OHCA 等。Users can select the urgency level and classification of incidents, such as internal medicine, surgery, OHCA, etc.
 
-- **後端框架**: Flask
-- **前端技術**: HTML、CSS
-- **資料庫**: MySQL，使用 PyMySQL 驅動進行連接與操作
-- **帳號存取**: CSV 檔案
-- **伺服器環境**: Debian 10
-- **其他**: LINE Bot API 用於訊息廣播功能
+2. **地點與詳細資訊填寫 / Location and Detailed Information Entry** - 系統支援輸入事件地點、樓層及補充資訊。The system supports input of incident location, floor, and additional information.
 
-## 系統結構
+3. **即時確認與通知 / Real-time Confirmation and Notification** - 系統提供案件確認頁面，並即時廣播訊息給相關人員。The system provides case confirmation pages and broadcasts messages to relevant personnel in real-time.
+
+4. **多平台訊息廣播 / Multi-platform Message Broadcasting** - 支援 LINE Bot 和 Discord Webhook 進行訊息廣播。Supports LINE Bot and Discord Webhook for message broadcasting.
+
+5. **系統測試功能 / System Testing Function** - 提供 LINE Bot 和 Discord Webhook 的快速測試功能，確保通訊正常運作。Provides quick testing functionality for LINE Bot and Discord Webhook to ensure proper communication.
+
+6. **伺服器錯誤與頁面未建置提醒 / Server Error and Page Not Found Handling** - 提供自訂的 404 和 500 錯誤頁面，提升使用體驗。Provides custom 404 and 500 error pages to improve user experience.
+
+7. **隱私與版權聲明 / Privacy and Copyright Statements** - 系統包含隱私權保護政策與版權宣告，確保資料使用合規。The system includes privacy protection policies and copyright statements to ensure compliant data usage.
+
+## 使用技術 / Technologies Used
+
+- **後端框架 / Backend Framework**: Flask
+- **前端技術 / Frontend Technologies**: HTML、CSS
+- **配置管理 / Configuration Management**: .env 檔案 / .env files
+- **伺服器環境 / Server Environment**: Debian 10
+- **其他 / Others**: LINE Bot API 用於訊息廣播功能 / LINE Bot API for message broadcasting functionality
+
+## 系統結構 / System Structure
 
 ```plaintext
-app.py                     - 主程式檔案
+app.py                     - 主程式檔案 / Main application file
+data/
+    ├── .env              - 環境變數配置檔案 / Environment variables configuration file
 templates/
-    ├── Inform/            - 填報相關的頁面模板
-    │   ├── 01_case.html   - 案件類別選擇
-    │   ├── 02_event.html  - 案件分類選擇
-    │   ├── 03_location.html - 地點輸入
-    │   ├── 04_floor.html  - 樓層輸入
-    │   ├── 05_room.html   - 教室或位置輸入
-    │   ├── 06_content.html - 補充資訊輸入
-    │   ├── 07_check.html  - 案件確認頁面
-    │   ├── 08_sending.html - 廣播傳送頁面
-    │   ├── 10_sended.html - 廣播完成頁面
-    ├── Information/       - 其他資訊頁面模板
-        ├── 404.html       - 404 頁面未建置
-        ├── 500.html       - 500 伺服器錯誤
-        ├── README.html    - 網站資訊頁
-        ├── 著作權宣告.html - 版權宣告
-        └── 隱私權保護政策.html - 隱私權政策
+    ├── Inform/            - 填報相關的頁面模板 / Incident reporting page templates
+    │   ├── 02_event.html  - 案件分類選擇 / Case classification selection
+    │   ├── 03_location.html - 地點輸入 / Location input
+    │   ├── 05_room.html   - 教室或位置輸入 / Room or position input
+    │   ├── 06_content.html - 補充資訊輸入 / Additional information input
+    │   ├── 07_check.html  - 案件確認頁面 / Case confirmation page
+    │   ├── 08_sending.html - 廣播傳送頁面 / Broadcasting transmission page
+    │   └── 10_sended.html - 廣播完成頁面 / Broadcasting completion page
+    ├── Information/       - 其他資訊頁面模板 / Other information page templates
+    │   ├── 404.html       - 404 頁面未建置 / 404 page not found
+    │   ├── 500.html       - 500 伺服器錯誤 / 500 server error
+    │   ├── README.html    - 網站資訊頁 / Website information page
+    │   ├── 著作權宣告.html - 版權宣告 / Copyright statement
+    │   └── 隱私權保護政策.html - 隱私權政策 / Privacy policy
+    └── system/            - 系統管理頁面模板 / System management page templates
+        └── test.html     - 系統測試頁面 / System test page
+server/
+    ├── boot.sh           - 伺服器啟動腳本 / Server boot script
+    ├── setup.sh          - 系統安裝腳本 / System installation script
+    └── ems-flask.service - systemd 服務檔案 / systemd service file
 ```
 
-## 安裝與執行
+## 安裝與執行 / Installation and Execution
 
-### 前置需求
+### 前置需求 / Prerequisites
 
-1. 安裝 Python 3.8 或更新版本
-2. 安裝相關套件，請執行以下指令：
+1. 安裝 Python 3.8 或更新版本 / Install Python 3.8 or newer
+2. 安裝相關套件，請執行以下指令 / Install required packages with the following commands:
    ```bash
-   pip install flask
-   pip install pandas
-   pip install pymysql
-   pip install line-bot-sdk
-   pip install dhooks
+   pip install -r requirements.txt
    ```
-3. 建立 MySQL 資料庫，並初始化以下結構（僅示例）：
-   ```sql
-   CREATE DATABASE emergency_system;
-   USE emergency_system;
+3. 配置環境變數 / Configure environment variables:
+   - 複製 `data/.env.example` 到 `data/.env` / Copy `data/.env.example` to `data/.env`
+   - 填入您的 LINE Bot API 金鑰、Discord Webhook URL 等 / Fill in your LINE Bot API keys, Discord Webhook URL, etc.
 
-   CREATE TABLE cases (
-       id INT AUTO_INCREMENT PRIMARY KEY,
-       case_type VARCHAR(255) NOT NULL,
-       event_type VARCHAR(255) NOT NULL,
-       location VARCHAR(255),
-       floor INT,
-       room VARCHAR(255),
-       additional_info TEXT,
-       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-   );
-   ```
+### 執行方式 / Execution Methods
 
-### 執行方式
-
-1. 啟動伺服器：
+1. 開發環境執行 / Development environment execution:
    ```bash
    python app.py
    ```
-2. 開啟瀏覽器，訪問 `http://127.0.0.1:5000` 進入系統主頁。
+2. 生產環境部署 / Production environment deployment:
+   ```bash
+   # 使用提供的安裝腳本 / Use the provided installation script
+   ./server/setup.sh
+   ```
+3. 開啟瀏覽器，訪問 `http://127.0.0.1:5000` 進入系統主頁 / Open browser and visit `http://127.0.0.1:5000` to access the system homepage.
 
-## 版權與授權
+### 系統測試 / System Testing
 
-- **版權擁有者**: 王建葦
-- **授權對象**: 逢甲大學衛保救護隊
-- **版本**: Alpha 2.0.0
+系統提供快速測試功能，確保 LINE Bot 和 Discord Webhook 正常運作：
 
-## 聯絡方式
+The system provides quick testing functionality to ensure LINE Bot and Discord Webhook are working properly:
 
-- **管理員名稱**: 王建葦
-- **管理員信箱**: [jw.albert.tw@gmail.com](mailto:jw.albert.tw@gmail.com)
-- **伺服器資訊**: ems.fcuems.tw (Debian 10)
+1. 訪問測試頁面 / Access test page: `http://127.0.0.1:5000/system/test`
+2. 點擊「測試 LINE Bot」按鈕測試 LINE 群組訊息 / Click "Test LINE Bot" button to test LINE group message
+3. 點擊「測試 Discord」按鈕測試 Discord 頻道訊息 / Click "Test Discord" button to test Discord channel message
+4. 查看測試結果和狀態訊息 / Check test results and status messages
 
-## 隱私權政策與版權
+## 環境變數配置 / Environment Variables Configuration
 
-本系統遵守相關隱私權保護條款，所有使用者資料將嚴格保密，詳細條款請參閱 [隱私權保護政策](PRIVACY_POLICY.md) 與 [著作權宣告](COPYRIGHT_NOTICE.md)。
+系統使用 `.env` 檔案進行配置管理，包含以下變數：
+
+The system uses `.env` files for configuration management, including the following variables:
+
+```env
+# LINE Bot 設定 / LINE Bot Configuration
+LINE_BOT_API_TOKEN=your_line_bot_api_token
+LINE_WEBHOOK_HANDLER=your_webhook_handler
+LINE_GROUP_ID=your_group_id
+
+# Discord Webhook 設定 / Discord Webhook Configuration
+DISCORD_WEBHOOK_URL=your_discord_webhook_url
+
+# 資料庫設定 / Database Configuration
+DB_HOST=localhost
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_NAME=emergency_system
+```
+
+## 版權與授權 / Copyright and License
+
+- **版權擁有者 / Copyright Owner**: 王建葦
+- **授權對象 / Licensee**: 逢甲大學衛保救護隊 / Feng Chia University Health and Safety Rescue Team
+- **版本 / Version**: Alpha 2.0.0
+
+## 聯絡方式 / Contact Information
+
+- **管理員名稱 / Administrator Name**: 王建葦
+- **管理員信箱 / Administrator Email**: [admin@mail.jw-albert.tw](mailto:admin@mail.jw-albert.tw)
+- **伺服器資訊 / Server Information**: ems.fcuems.tw (Debian 10)
+
+## 隱私權政策與版權 / Privacy Policy and Copyright
+
+本系統遵守相關隱私權保護條款，所有使用者資料將嚴格保密，詳細條款請參閱 [隱私權保護政策](templates/Information/PRIVACY_POLICY.md) 與 [著作權宣告](templates/Information/COPYRIGHT_NOTICE.md)。
+
+This system complies with relevant privacy protection terms. All user data will be strictly confidential. For detailed terms, please refer to [Privacy Policy](templates/Information/PRIVACY_POLICY.md) and [Copyright Notice](templates/Information/COPYRIGHT_NOTICE.md).

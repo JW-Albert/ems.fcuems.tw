@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系統測試 / System Test - 緊急事件通報系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        .test-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .test-button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 20px 30px;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .test-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .test-button:active {
+            transform: translateY(-1px);
+        }
+
+        .test-button.discord {
+            background: linear-gradient(45deg, #7289da, #5865f2);
+            box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
+        }
+
+        .test-button.discord:hover {
+            box-shadow: 0 8px 25px rgba(114, 137, 218, 0.4);
+        }
+
+        .test-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .test-button .icon {
+            margin-right: 10px;
+            font-size: 1.3em;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .back-button {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .back-button:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .test-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .test-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .test-info ul {
+            color: #666;
+            padding-left: 20px;
+        }
+
+        .test-info li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 系統測試 / System Test</h1>
+            <p>測試 LINE Bot 和 Discord Webhook 是否正常運作<br>Test if LINE Bot and Discord Webhook are working properly</p>
+        </div>
+
+        <div class="test-info">
+            <h3>📋 測試說明 / Test Instructions</h3>
+            <ul>
+                <li><strong>LINE Bot 測試</strong>：發送測試訊息到 LINE 群組 / Send test message to LINE group</li>
+                <li><strong>Discord 測試</strong>：發送測試訊息到 Discord 頻道 / Send test message to Discord channel</li>
+                <li>測試訊息內容：系統時間 + 測試確認 / Test message content: System time + Test confirmation</li>
+            </ul>
+        </div>
+
+        <div class="test-buttons">
+            <button class="test-button" onclick="testLineBot()">
+                <span class="icon">📱</span>
+                測試 LINE Bot / Test LINE Bot
+            </button>
+
+            <button class="test-button discord" onclick="testDiscord()">
+                <span class="icon">💬</span>
+                測試 Discord / Test Discord
+            </button>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <a href="/" class="back-button">← 返回首頁 / Back to Home</a>
+    </div>
+
+    <script>
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+        }
+
+        function setButtonLoading(button, loading) {
+            if (loading) {
+                button.disabled = true;
+                button.innerHTML = '<span class="loading-spinner"></span>測試中... / Testing...';
+            } else {
+                button.disabled = false;
+                if (button.classList.contains('discord')) {
+                    button.innerHTML = '<span class="icon">💬</span>測試 Discord / Test Discord';
+                } else {
+                    button.innerHTML = '<span class="icon">📱</span>測試 LINE Bot / Test LINE Bot';
+                }
+            }
+        }
+
+        async function testLineBot() {
+            const button = event.target;
+            setButtonLoading(button, true);
+            showStatus('正在測試 LINE Bot... / Testing LINE Bot...', 'loading');
+
+            try {
+                const response = await fetch('/system/test/line', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showStatus('✅ LINE Bot 測試成功！訊息已發送 / LINE Bot test successful! Message sent', 'success');
+                } else {
+                    showStatus(`❌ LINE Bot 測試失敗：${result.error || '未知錯誤'} / LINE Bot test failed: ${result.error || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ LINE Bot 測試失敗：${error.message} / LINE Bot test failed: ${error.message}`, 'error');
+            } finally {
+                setButtonLoading(button, false);
+            }
+        }
+
+        async function testDiscord() {
+            const button = event.target;
+            setButtonLoading(button, true);
+            showStatus('正在測試 Discord... / Testing Discord...', 'loading');
+
+            try {
+                const response = await fetch('/system/test/discord', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showStatus('✅ Discord 測試成功！訊息已發送 / Discord test successful! Message sent', 'success');
+                } else {
+                    showStatus(`❌ Discord 測試失敗：${result.error || '未知錯誤'} / Discord test failed: ${result.error || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ Discord 測試失敗：${error.message} / Discord test failed: ${error.message}`, 'error');
+            } finally {
+                setButtonLoading(button, false);
+            }
+        }
+    </script>
+</body>
+
+</html>
