@@ -397,11 +397,11 @@
     </div>
 
     <script>
-        // 設定預設日期
+        // 設定預設日期（顯示所有記錄）
         document.addEventListener('DOMContentLoaded', function () {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('date-from').value = today;
-            document.getElementById('date-to').value = today;
+            // 清空日期欄位以顯示所有記錄
+            document.getElementById('date-from').value = '';
+            document.getElementById('date-to').value = '';
             loadRecords();
         });
 
@@ -557,7 +557,11 @@
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `case_records_${dateFrom}_to_${dateTo}.txt`;
+                    if (dateFrom && dateTo) {
+                        a.download = `case_records_${dateFrom}_to_${dateTo}.txt`;
+                    } else {
+                        a.download = `case_records_all.txt`;
+                    }
                     document.body.appendChild(a);
                     a.click();
                     window.URL.revokeObjectURL(url);

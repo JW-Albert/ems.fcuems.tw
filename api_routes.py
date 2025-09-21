@@ -188,11 +188,8 @@ class APIRoutes:
                     'surgical_cases': 0
                 }
                 
-                # 如果沒有指定日期範圍，預設為今天
-                if not date_from:
-                    date_from = datetime.datetime.now().strftime("%Y-%m-%d")
-                if not date_to:
-                    date_to = date_from
+                # 如果沒有指定日期範圍，顯示所有記錄
+                # 保持空字串以顯示所有記錄
                 
                 # 獲取案件檔案
                 case_files = case_manager.get_case_files(date_from, date_to)
@@ -471,14 +468,14 @@ class APIRoutes:
                 date_from = data.get('date_from', '')
                 date_to = data.get('date_to', '')
                 
-                # 如果沒有指定日期範圍，預設為今天
-                if not date_from:
-                    date_from = datetime.datetime.now().strftime("%Y-%m-%d")
-                if not date_to:
-                    date_to = date_from
+                # 如果沒有指定日期範圍，顯示所有記錄
+                # 保持空字串以顯示所有記錄
                 
                 # 生成匯出檔案名稱
-                export_filename = f"records_export_{date_from}_{date_to}.txt"
+                if date_from and date_to:
+                    export_filename = f"records_export_{date_from}_{date_to}.txt"
+                else:
+                    export_filename = f"records_export_all.txt"
                 export_path = os.path.join("record", export_filename)
                 
                 # 收集案件紀錄
