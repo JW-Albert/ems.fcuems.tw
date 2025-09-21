@@ -307,8 +307,13 @@ def get_records():
         case_files = case_manager.get_case_files(date_from, date_to)
         
         for case_file in case_files:
+            # 讀取案件檔案內容
+            content = case_manager.read_case_file(case_file['filename'])
+            if not content:
+                continue
+                
             # 解析案件記錄
-            case_info = case_manager.parse_case_record(case_file['content'])
+            case_info = case_manager.parse_case_record(content)
             
             # 統計
             stats['total_cases'] += 1
