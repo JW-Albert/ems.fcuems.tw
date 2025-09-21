@@ -185,7 +185,7 @@ def show_07_check():
         location_id_int = int(location_id)
         location_name = locat_table_session.get(location_id_int, 'Unknown')
     except (ValueError, TypeError):
-        # 如果轉換失敗，嘗試直接使用字串
+        # 如果轉換失敗，可能是自訂地點（ID為99）或其他特殊情況
         location_name = locat_table_session.get(location_id, 'Unknown')
     
     return render_template("Inform/07_check.html", 
@@ -237,6 +237,7 @@ def process_03_location():
         location_name = locat_table_session.get(selected_button, "Unknown")
         logger_manager.log_user_action("選擇案件地點", f"地點: {location_name}({selected_button})")
     else:
+        # 自訂地點使用ID 99
         session["locat"] = "99"
         locat_table_session.update({99: custom_location})
         logger_manager.log_user_action("自訂案件地點", f"自訂地點: {custom_location}")
@@ -472,8 +473,5 @@ def internal_error(error):
     return render_template("Information/500.html"), 500
 
 if __name__ == "__main__":
-    # 設定日誌
-    logger_manager.setup_logging()
-    
     # 啟動應用程式
     app.run(host="0.0.0.0", port=5000, debug=True)
