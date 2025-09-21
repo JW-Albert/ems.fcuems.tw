@@ -290,14 +290,22 @@ class APIRoutes:
                                     # 嘗試多種解析方式
                                     if ' [' in line and '] ' in line:
                                         parts = line.split(' [', 2)
-                                        if len(parts) >= 3:
+                                        if len(parts) >= 2:
                                             timestamp = parts[0]
-                                            level = parts[1].rstrip(']')
-                                            message = parts[2]
-                                            
-                                            # 調試解析結果
-                                            if i < 5:
-                                                logger_manager.log_user_action("解析成功", f"第{i+1}行: {timestamp} | {level} | {message[:30]}...")
+                                            # 從 parts[1] 中分離 level 和 message
+                                            level_message = parts[1]
+                                            if '] ' in level_message:
+                                                level, message = level_message.split('] ', 1)
+                                                level = level.strip()
+                                                message = message.strip()
+                                                
+                                                # 調試解析結果
+                                                if i < 5:
+                                                    logger_manager.log_user_action("解析成功", f"第{i+1}行: {timestamp} | {level} | {message[:30]}...")
+                                            else:
+                                                if i < 5:
+                                                    logger_manager.log_user_action("解析失敗", f"第{i+1}行找不到 '] '")
+                                                continue
                                         else:
                                             if i < 5:
                                                 logger_manager.log_user_action("解析失敗", f"第{i+1}行parts長度不足: {len(parts)}")
