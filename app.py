@@ -185,7 +185,7 @@ def show_07_check():
     # 獲取地點名稱
     try:
         location_id_int = int(location_id)
-        location_name = session["locat_table"].get(location_id_int, 'Unknown')
+        location_name = session["locat_table"].get(session["locat"], 'Unknown')
     except (ValueError, TypeError):
         # 如果轉換失敗，可能是自訂地點（ID為99）或其他特殊情況
         location_name = session["locat_table"].get(location_id, 'Unknown')
@@ -234,7 +234,7 @@ def process_03_location():
     if selected_button != 0:
         # 預設地點
         session["locat"] = str(selected_button)
-        location_name = session["locat_table"].get(selected_button, "Unknown")
+        location_name = session["locat_table"].get(session["locat"], "Unknown")
         logger_manager.log_user_action("選擇案件地點", f"地點: {location_name}({selected_button})")
     else:
         # 自訂地點：新增到地點表
