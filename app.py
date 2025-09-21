@@ -3,16 +3,11 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, JoinEvent
 import datetime
-import email.message
-import smtplib
-import pymysql
-import pandas as pd
 import logging
 from dhooks import Webhook
 import os
 import requests
 import threading
-import time
 from dotenv import load_dotenv
 
 # 載入環境變數
