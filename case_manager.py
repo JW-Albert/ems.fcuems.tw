@@ -141,33 +141,39 @@ class CaseManager:
             elif '廣播結果 / Broadcast Results:' in line:
                 current_section = 'broadcast_results'
                 continue
-            elif line.startswith('-') or line.startswith('='):
+            elif line.startswith('='):
                 continue
             
             # 解析各區段內容
             if current_section == 'case_info':
-                if '案件分類 / Case Type:' in line:
-                    case_info['event_type'] = line.split(':', 1)[1].strip()
-                elif '案件地點 / Location:' in line:
-                    case_info['location'] = line.split(':', 1)[1].strip()
-                elif '案件位置 / Position:' in line:
-                    case_info['room'] = line.split(':', 1)[1].strip()
-                elif '補充資訊 / Additional Info:' in line:
-                    case_info['content'] = line.split(':', 1)[1].strip()
+                # 移除可能的前綴符號
+                clean_line = line.lstrip('- ')
+                if '案件分類 / Case Type:' in clean_line:
+                    case_info['event_type'] = clean_line.split(':', 1)[1].strip()
+                elif '案件地點 / Location:' in clean_line:
+                    case_info['location'] = clean_line.split(':', 1)[1].strip()
+                elif '案件位置 / Position:' in clean_line:
+                    case_info['room'] = clean_line.split(':', 1)[1].strip()
+                elif '補充資訊 / Additional Info:' in clean_line:
+                    case_info['content'] = clean_line.split(':', 1)[1].strip()
             
             elif current_section == 'reporter_info':
-                if 'IP 地址 / IP Address:' in line:
-                    case_info['ip'] = line.split(':', 1)[1].strip()
-                elif '國家 / Country:' in line:
-                    case_info['country'] = line.split(':', 1)[1].strip()
-                elif '城市 / City:' in line:
-                    case_info['city'] = line.split(':', 1)[1].strip()
+                # 移除可能的前綴符號
+                clean_line = line.lstrip('- ')
+                if 'IP 地址 / IP Address:' in clean_line:
+                    case_info['ip'] = clean_line.split(':', 1)[1].strip()
+                elif '國家 / Country:' in clean_line:
+                    case_info['country'] = clean_line.split(':', 1)[1].strip()
+                elif '城市 / City:' in clean_line:
+                    case_info['city'] = clean_line.split(':', 1)[1].strip()
             
             elif current_section == 'broadcast_results':
-                if 'Discord 發送 / Discord Send:' in line:
-                    case_info['discord_success'] = line.split(':', 1)[1].strip().lower() == 'true'
-                elif 'LINE 發送 / LINE Send:' in line:
-                    case_info['line_success'] = line.split(':', 1)[1].strip().lower() == 'true'
+                # 移除可能的前綴符號
+                clean_line = line.lstrip('- ')
+                if 'Discord 發送 / Discord Send:' in clean_line:
+                    case_info['discord_success'] = clean_line.split(':', 1)[1].strip().lower() == 'true'
+                elif 'LINE 發送 / LINE Send:' in clean_line:
+                    case_info['line_success'] = clean_line.split(':', 1)[1].strip().lower() == 'true'
         
         return case_info
     
@@ -216,7 +222,7 @@ class CaseManager:
             elif '系統資訊 / System Information:' in line:
                 current_section = 'system_info'
                 continue
-            elif line.startswith('-') or line.startswith('='):
+            elif line.startswith('='):
                 continue
             
             # 解析各區段內容

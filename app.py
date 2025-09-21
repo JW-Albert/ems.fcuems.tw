@@ -380,7 +380,17 @@ def show_08_sending():
 def show_10_sended():
     """案件發送完成頁面"""
     logger_manager.log_user_action("訪問案件發送完成頁面")
-    return render_template("Inform/10_sended.html")
+    
+    # 準備案件資料
+    case_data = {
+        'event_type': event_table.get(session.get('event', 0), 'Unknown'),
+        'location': session.get('locat_table', {}).get(session.get('locat', 0), 'Unknown'),
+        'room': session.get('room', 'Unknown'),
+        'content': session.get('content', 'Unknown'),
+        'message': session.get('message', 'Unknown')
+    }
+    
+    return render_template("Inform/10_sended.html", case_data=case_data)
 
 # 案件處理路由
 @app.route("/Inform/Read_02_Event", methods=["POST"])
@@ -506,6 +516,9 @@ def show_09_sending():
     logger_manager.log_user_action("案件廣播完成", 
         f"Discord={discord_success} | LINE={line_success}")
 
+    # 獲取通報者資訊
+    user_info = logger_manager.get_user_info()
+    
     # 準備案件資料並儲存紀錄
     case_data = {
         'event_type': event_table[session['event']],
@@ -515,7 +528,11 @@ def show_09_sending():
         'message': session["message"],
         'discord_success': discord_success,
         'line_success': line_success,
-        'discord_message_id': discord_message_id
+        'discord_message_id': discord_message_id,
+        'ip': user_info.get('ip', 'Unknown'),
+        'country': user_info.get('country', 'Unknown'),
+        'city': user_info.get('city', 'Unknown'),
+        'user_agent': user_info.get('user_agent', 'Unknown')
     }
     
     # 儲存案件紀錄

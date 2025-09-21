@@ -111,6 +111,18 @@
         <p class="message">若有必要請盡快撥打 110 或 119 取得幫助</p>
         <p class="message">請優先做好自我防護！</p>
 
+        <!-- 案件詳情顯示 -->
+        <div class="case-details"
+            style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h3 style="color: #8B4513; margin-bottom: 15px; text-align: center;">案件詳情 / Case Details</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9em;">
+                <div><strong>案件分類 / Case Type:</strong> {{ case_data.event_type }}</div>
+                <div><strong>案件地點 / Location:</strong> {{ case_data.location }}</div>
+                <div><strong>案件位置 / Position:</strong> {{ case_data.room }}</div>
+                <div><strong>補充資訊 / Additional Info:</strong> {{ case_data.content }}</div>
+            </div>
+        </div>
+
         <button class="home-button" onclick="location.href='/'">
             <i class="fas fa-home"></i> 回首頁
         </button>
