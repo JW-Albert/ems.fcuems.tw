@@ -25,6 +25,11 @@ app = Flask(__name__, static_folder="static", static_url_path="/")
 app.secret_key = config.SECRET_KEY
 app.config["SESSION_TYPE"] = config.SESSION_TYPE
 
+# 禁用Flask的請求日誌記錄
+import logging
+log = logging.getLogger('werkzeug')
+log.disabled = True
+
 # LINE Bot 設定
 from linebot import LineBotApi, WebhookHandler
 line_bot_api = LineBotApi(config.LINE_BOT_API_TOKEN)

@@ -25,6 +25,11 @@ app = Flask(__name__, static_folder="static", static_url_path="/")
 app.secret_key = config.SECRET_KEY
 app.config["SESSION_TYPE"] = config.SESSION_TYPE
 
+# 禁用Flask的請求日誌記錄
+import logging
+log = logging.getLogger('werkzeug')
+log.disabled = True
+
 # LINE Bot 設定
 from linebot import LineBotApi, WebhookHandler
 line_bot_api = LineBotApi(config.LINE_BOT_API_TOKEN)
@@ -107,12 +112,13 @@ def before_request():
     """請求前處理"""
     user_info = logger_manager.get_user_info()
     logger_manager.log_user_action("頁面訪問", f"路徑: {request.path}")
-    logger_manager.log_request(request.method, request.path, 200)
+    # 不在這裡記錄請求，避免重複記錄
 
 # 請求後處理
 @app.after_request
 def after_request(response):
     """請求後處理"""
+    user_info = logger_manager.get_user_info()
     logger_manager.log_request(
         request.method, 
         request.path, 
