@@ -378,11 +378,14 @@ class APIRoutes:
                     f.write("="*50 + "\n\n")
                     f.writelines(all_logs)
                 
-                return jsonify({
-                    "success": True,
-                    "message": f"日誌已匯出到 {export_filename}",
-                    "filename": export_filename
-                })
+                # 返回檔案下載
+                from flask import send_file
+                return send_file(
+                    export_path,
+                    as_attachment=True,
+                    download_name=export_filename,
+                    mimetype='text/plain'
+                )
                 
             except Exception as e:
                 logger_manager.log_error(f"Export logs failed: {e}")

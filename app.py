@@ -107,12 +107,13 @@ def before_request():
     """請求前處理"""
     user_info = logger_manager.get_user_info()
     logger_manager.log_user_action("頁面訪問", f"路徑: {request.path}")
-    logger_manager.log_request(request.method, request.path, 200)
+    # 不在這裡記錄請求，避免重複記錄
 
 # 請求後處理
 @app.after_request
 def after_request(response):
     """請求後處理"""
+    user_info = logger_manager.get_user_info()
     logger_manager.log_request(
         request.method, 
         request.path, 

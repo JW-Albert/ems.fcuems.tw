@@ -52,11 +52,10 @@ class LoggerManager:
         console_handler.setFormatter(console_formatter)
         root_logger.addHandler(console_handler)
         
-        # 設定 Flask 日誌器
+        # 完全禁用 Flask 的 werkzeug 日誌器
         flask_logger = logging.getLogger('werkzeug')
-        flask_logger.setLevel(logging.INFO)
-        flask_logger.addHandler(file_handler)
-        flask_logger.addHandler(console_handler)
+        flask_logger.disabled = True
+        flask_logger.setLevel(logging.CRITICAL)  # 只記錄嚴重錯誤
     
     def get_real_ip(self):
         """獲取真實IP地址（支援Cloudflare Tunnel）"""
@@ -124,6 +123,7 @@ class LoggerManager:
         """記錄請求資訊"""
         user_info = self.get_user_info()
         
+        # 使用自定義格式記錄請求，避免使用werkzeug的格式
         log_message = f"Request: {method} {path} | Status: {status_code}"
         if response_time:
             log_message += f" | Response Time: {response_time}ms"
