@@ -276,10 +276,14 @@ class APIRoutes:
                             log_lines = logger_manager.read_log_file(os.path.basename(log_filename))
                             logger_manager.log_user_action("日誌API調試", f"讀取到 {len(log_lines)} 行日誌")
                             
-                            for line in log_lines:
+                            for i, line in enumerate(log_lines):
                                 line = line.strip()
                                 if not line:
                                     continue
+                                
+                                # 只調試前5行
+                                if i < 5:
+                                    logger_manager.log_user_action("日誌行調試", f"第{i+1}行: {repr(line[:100])}")
                                 
                                 # 解析日誌行
                                 try:
@@ -290,7 +294,13 @@ class APIRoutes:
                                             timestamp = parts[0]
                                             level = parts[1].rstrip(']')
                                             message = parts[2]
+                                            
+                                            # 調試解析結果
+                                            if i < 5:
+                                                logger_manager.log_user_action("解析成功", f"第{i+1}行: {timestamp} | {level} | {message[:30]}...")
                                         else:
+                                            if i < 5:
+                                                logger_manager.log_user_action("解析失敗", f"第{i+1}行parts長度不足: {len(parts)}")
                                             continue
                                     elif '] ' in line:
                                         # 備用解析方式
@@ -306,14 +316,20 @@ class APIRoutes:
                                         else:
                                             continue
                                     else:
+                                        if i < 5:
+                                            logger_manager.log_user_action("解析失敗", f"第{i+1}行格式不符合: 找不到 ' [' 或 '] '")
                                         continue
                                     
                                     # 類型過濾
                                     if log_type != 'all' and level.lower() != log_type.lower():
+                                        if i < 5:
+                                            logger_manager.log_user_action("類型過濾", f"第{i+1}行被過濾: {level} != {log_type}")
                                         continue
                                     
                                     # IP過濾
                                     if ip_filter and ip_filter not in message:
+                                        if i < 5:
+                                            logger_manager.log_user_action("IP過濾", f"第{i+1}行被過濾: IP不匹配")
                                         continue
                                     
                                     logs.append({
@@ -331,9 +347,9 @@ class APIRoutes:
                                     elif 'TEST' in message or '測試' in message:
                                         stats['tests'] += 1
                                     
-                                    # 記錄解析成功的日誌
-                                    if len(logs) <= 3:  # 只記錄前3條
-                                        logger_manager.log_user_action("日誌解析成功", f"解析第{len(logs)}條: {level}")
+                                    # 記錄成功添加的日誌
+                                    if i < 5:
+                                        logger_manager.log_user_action("日誌添加成功", f"第{i+1}行已添加: {level}")
                                     
                                 except Exception as e:
                                     continue
