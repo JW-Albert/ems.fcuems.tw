@@ -169,7 +169,25 @@ def show_06_content():
 def show_07_check():
     """案件確認頁面"""
     logger_manager.log_user_action("訪問案件確認頁面")
-    return render_template("Inform/07_check.html")
+    
+    # 準備案件資料
+    event_type = session.get('event', 0)
+    location_id = session.get('locat', '0')
+    room = session.get('room', 'NULL')
+    content = session.get('content', '')
+    
+    # 獲取案件分類名稱
+    event_name = event_table.get(event_type, 'Unknown')
+    
+    # 獲取地點名稱
+    locat_table_session = session.get('locat_table', locat_table)
+    location_name = locat_table_session.get(int(location_id), 'Unknown')
+    
+    return render_template("Inform/07_check.html", 
+                          event=event_name,
+                          locat=location_name,
+                          room=room,
+                          content=content)
 
 @app.route("/Inform/Read_08_Sending")
 def show_08_sending():
