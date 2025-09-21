@@ -20,7 +20,6 @@ app.config["SESSION_TYPE"] = "filesystem"
 # 廣播寄送控制
 line = 1
 discord = 1
-mail = 0
 
 
 def Time() -> str:
@@ -36,9 +35,12 @@ handler = WebhookHandler(line_webhook_handler)
 
 group_id = os.getenv("LINE_GROUP_ID")
 
-# 確保 logs 目錄存在
+# 確保 logs 和 record 目錄存在
 if not os.path.exists("logs"):
     os.makedirs("logs")
+
+if not os.path.exists("record"):
+    os.makedirs("record")
 
 # 日誌檔案管理
 def get_log_filename(date=None):
@@ -127,6 +129,78 @@ def log_user_action(action, details=None):
         log_message += f" | Details={details}"
     
     logging.info(log_message)
+
+
+def save_case_record(case_data):
+    """儲存案件紀錄到檔案"""
+    try:
+        # 生成檔案名稱（精確到秒）
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"record/case_{timestamp}.txt"
+        
+        # 準備案件資料
+        record_content = []
+        record_content.append("=" * 50)
+        record_content.append("緊急事件通報紀錄 / Emergency Incident Report")
+        record_content.append("=" * 50)
+        record_content.append(f"案件編號 / Case ID: {timestamp}")
+        record_content.append(f"通報時間 / Report Time: {Time()}")
+        record_content.append("")
+        
+        # 案件基本資訊
+        record_content.append("案件資訊 / Case Information:")
+        record_content.append("-" * 30)
+        record_content.append(f"案件分類 / Case Type: {case_data.get('event_type', 'Unknown')}")
+        record_content.append(f"案件地點 / Location: {case_data.get('location', 'Unknown')}")
+        record_content.append(f"案件位置 / Position: {case_data.get('room', 'Unknown')}")
+        record_content.append(f"補充資訊 / Additional Info: {case_data.get('content', 'None')}")
+        record_content.append("")
+        
+        # 通報者資訊
+        user_info = get_user_info()
+        record_content.append("通報者資訊 / Reporter Information:")
+        record_content.append("-" * 30)
+        record_content.append(f"IP 地址 / IP Address: {user_info['ip']}")
+        record_content.append(f"國家 / Country: {user_info['country']}")
+        record_content.append(f"城市 / City: {user_info['city']}")
+        record_content.append(f"瀏覽器 / User Agent: {user_info['user_agent']}")
+        record_content.append("")
+        
+        # 廣播結果
+        record_content.append("廣播結果 / Broadcast Results:")
+        record_content.append("-" * 30)
+        record_content.append(f"Discord 發送 / Discord Send: {case_data.get('discord_success', False)}")
+        record_content.append(f"LINE 發送 / LINE Send: {case_data.get('line_success', False)}")
+        if case_data.get('discord_message_id'):
+            record_content.append(f"Discord 訊息 ID / Discord Message ID: {case_data.get('discord_message_id')}")
+        record_content.append("")
+        
+        # 完整訊息內容
+        record_content.append("完整訊息內容 / Complete Message:")
+        record_content.append("-" * 30)
+        record_content.append(case_data.get('message', 'No message'))
+        record_content.append("")
+        
+        # 系統資訊
+        record_content.append("系統資訊 / System Information:")
+        record_content.append("-" * 30)
+        record_content.append(f"伺服器時間 / Server Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        record_content.append(f"檔案路徑 / File Path: {filename}")
+        record_content.append("=" * 50)
+        
+        # 寫入檔案
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(record_content))
+        
+        # 記錄到日誌
+        log_user_action("SAVE_CASE_RECORD", f"File={filename}")
+        logging.info(f"Case record saved to {filename}")
+        
+        return filename
+        
+    except Exception as e:
+        logging.error(f"Failed to save case record: {e}")
+        return None
 
 
 @app.before_request
@@ -437,12 +511,14 @@ def Inform_09_Sending():
     # 發送訊息並記錄結果
     discord_success = False
     line_success = False
+    discord_message_id = None
     
     if discord == 1:
         message_id = discord_send(session["message"] + "\n@everyone\n# [事件回覆](https://forms.gle/dww4orwk2RHSbVV2A)")
         if message_id:
             schedule_discord_edit(message_id, session["message"] + "\n@everyone\n# [事件回覆](https://forms.gle/dww4orwk2RHSbVV2A)")
             discord_success = True
+            discord_message_id = message_id
             log_user_action("DISCORD_SEND_SUCCESS", f"MessageID={message_id}")
         else:
             log_user_action("DISCORD_SEND_FAILED", "Failed to send Discord message")
@@ -458,6 +534,25 @@ def Inform_09_Sending():
     # 記錄整體發送結果
     log_user_action("INCIDENT_BROADCAST_COMPLETE", 
         f"Discord={discord_success} | LINE={line_success}")
+
+    # 準備案件資料並儲存紀錄
+    case_data = {
+        'event_type': event_table[session['event']],
+        'location': session['locat_table'][session['locat']],
+        'room': session['room'],
+        'content': session['content'],
+        'message': session["message"],
+        'discord_success': discord_success,
+        'line_success': line_success,
+        'discord_message_id': discord_message_id
+    }
+    
+    # 儲存案件紀錄
+    record_file = save_case_record(case_data)
+    if record_file:
+        log_user_action("CASE_RECORD_SAVED", f"RecordFile={record_file}")
+    else:
+        log_user_action("CASE_RECORD_FAILED", "Failed to save case record")
 
     return redirect("/Inform/10_Sended")
 
@@ -544,6 +639,12 @@ def system_logs():
     return render_template("/system/logs.html")
 
 
+@app.route("/system/records")
+def system_records():
+    """案件紀錄管理頁面"""
+    return render_template("/system/records.html")
+
+
 @app.route("/system/logs/files", methods=["GET"])
 def get_log_files():
     """獲取可用的日誌檔案列表"""
@@ -584,6 +685,620 @@ def get_log_files():
         
     except Exception as e:
         logging.error(f"Get log files failed: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/system/records/api", methods=["POST"])
+def get_records_api():
+    """獲取案件紀錄資料API"""
+    try:
+        data = request.get_json()
+        case_type = data.get('case_type', 'all')
+        date_from = data.get('date_from', '')
+        date_to = data.get('date_to', '')
+        
+        records = []
+        stats = {
+            'total_cases': 0,
+            'ohca_cases': 0,
+            'internal_cases': 0,
+            'surgical_cases': 0
+        }
+        
+        # 如果沒有指定日期範圍，預設為今天
+        if not date_from:
+            date_from = datetime.datetime.now().strftime("%Y-%m-%d")
+        if not date_to:
+            date_to = date_from
+        
+        # 轉換日期格式並生成日期列表
+        try:
+            start_date = datetime.datetime.strptime(date_from, "%Y-%m-%d")
+            end_date = datetime.datetime.strptime(date_to, "%Y-%m-%d")
+            
+            # 生成日期範圍
+            current_date = start_date
+            while current_date <= end_date:
+                date_str = current_date.strftime("%Y%m%d")
+                
+                # 搜尋該日期的案件檔案
+                if os.path.exists("record"):
+                    for filename in os.listdir("record"):
+                        if filename.startswith(f"case_{date_str}") and filename.endswith(".txt"):
+                            try:
+                                # 解析檔案名稱獲取時間
+                                time_str = filename.replace("case_", "").replace(".txt", "")
+                                case_time = datetime.datetime.strptime(time_str, "%Y%m%d_%H%M%S")
+                                
+                                # 讀取案件檔案
+                                file_path = os.path.join("record", filename)
+                                with open(file_path, 'r', encoding='utf-8') as f:
+                                    content = f.read()
+                                
+                                # 解析案件資訊
+                                case_info = parse_case_record(content)
+                                case_info['filename'] = filename
+                                case_info['case_id'] = time_str
+                                case_info['time'] = case_time.strftime("%Y-%m-%d %H:%M:%S")
+                                
+                                # 統計
+                                stats['total_cases'] += 1
+                                if case_info.get('event_type') == 'OHCA':
+                                    stats['ohca_cases'] += 1
+                                elif case_info.get('event_type') == '內科':
+                                    stats['internal_cases'] += 1
+                                elif case_info.get('event_type') == '外科':
+                                    stats['surgical_cases'] += 1
+                                
+                                # 類型過濾
+                                if case_type == 'all' or case_info.get('event_type') == case_type:
+                                    records.append(case_info)
+                                    
+                            except Exception as e:
+                                logging.error(f"Failed to parse case record {filename}: {e}")
+                                continue
+                
+                current_date += datetime.timedelta(days=1)
+        
+        except ValueError as e:
+            return jsonify({"success": False, "error": f"日期格式錯誤: {str(e)}"})
+        
+        # 按時間排序（最新的在前）
+        records.sort(key=lambda x: x['case_id'], reverse=True)
+        
+        return jsonify({
+            'success': True,
+            'records': records,
+            'stats': stats
+        })
+        
+    except Exception as e:
+        logging.error(f"Get records API failed: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+def parse_case_record(content):
+    """解析案件紀錄檔案內容"""
+    case_info = {}
+    lines = content.split('\n')
+    
+    for line in lines:
+        line = line.strip()
+        if '案件分類 / Case Type:' in line:
+            case_info['event_type'] = line.split(':', 1)[1].strip()
+        elif '案件地點 / Location:' in line:
+            case_info['location'] = line.split(':', 1)[1].strip()
+        elif '案件位置 / Position:' in line:
+            case_info['room'] = line.split(':', 1)[1].strip()
+        elif 'IP 地址 / IP Address:' in line:
+            case_info['ip'] = line.split(':', 1)[1].strip()
+        elif '國家 / Country:' in line:
+            case_info['country'] = line.split(':', 1)[1].strip()
+        elif '城市 / City:' in line:
+            case_info['city'] = line.split(':', 1)[1].strip()
+    
+    return case_info
+
+
+@app.route("/system/records/view/<filename>")
+def view_record(filename):
+    """查看案件紀錄詳情"""
+    try:
+        file_path = os.path.join("record", filename)
+        
+        if not os.path.exists(file_path):
+            return jsonify({"success": False, "error": "案件紀錄檔案不存在"})
+        
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        return jsonify({
+            'success': True,
+            'content': content
+        })
+        
+    except Exception as e:
+        logging.error(f"View record failed: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/system/records/download/<filename>")
+def download_record(filename):
+    """下載案件紀錄檔案"""
+    try:
+        file_path = os.path.join("record", filename)
+        
+        if not os.path.exists(file_path):
+            return jsonify({"success": False, "error": "案件紀錄檔案不存在"})
+        
+        from flask import send_file
+        return send_file(file_path, as_attachment=True, download_name=filename)
+        
+    except Exception as e:
+        logging.error(f"Download record failed: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/system/records/export", methods=["POST"])
+def export_records():
+    """匯出案件紀錄檔案"""
+    try:
+        data = request.get_json()
+        case_type = data.get('case_type', 'all')
+        date_from = data.get('date_from', '')
+        date_to = data.get('date_to', '')
+        
+        # 如果沒有指定日期範圍，預設為今天
+        if not date_from:
+            date_from = datetime.datetime.now().strftime("%Y-%m-%d")
+        if not date_to:
+            date_to = date_from
+        
+        records_content = []
+        
+        # 轉換日期格式並生成日期列表
+        try:
+            start_date = datetime.datetime.strptime(date_from, "%Y-%m-%d")
+            end_date = datetime.datetime.strptime(date_to, "%Y-%m-%d")
+            
+            # 生成日期範圍
+            current_date = start_date
+            while current_date <= end_date:
+                date_str = current_date.strftime("%Y%m%d")
+                
+                # 搜尋該日期的案件檔案
+                if os.path.exists("record"):
+                    for filename in os.listdir("record"):
+                        if filename.startswith(f"case_{date_str}") and filename.endswith(".txt"):
+                            try:
+                                file_path = os.path.join("record", filename)
+                                with open(file_path, 'r', encoding='utf-8') as f:
+                                    content = f.read()
+                                
+                                # 解析案件資訊進行過濾
+                                case_info = parse_case_record(content)
+                                if case_type == 'all' or case_info.get('event_type') == case_type:
+                                    records_content.append(f"\n=== {filename} ===")
+                                    records_content.append(content)
+                                    
+                            except Exception as e:
+                                logging.error(f"Failed to read case record {filename}: {e}")
+                                continue
+                
+                current_date += datetime.timedelta(days=1)
+        
+        except ValueError as e:
+            return jsonify({"success": False, "error": f"日期格式錯誤: {str(e)}"})
+        
+        if not records_content:
+            records_content.append("No case records found for the specified criteria.")
+        
+        # 創建回應
+        from flask import Response
+        filename = f"case_records_{date_from}_to_{date_to}.txt"
+        response = Response(
+            '\n'.join(records_content),
+            mimetype='text/plain',
+            headers={
+                'Content-Disposition': f'attachment; filename={filename}'
+            }
+        )
+        
+        return response
+        
+    except Exception as e:
+        logging.error(f"Export records failed: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/system/records/clear", methods=["POST"])
+def clear_records():
+    """清除案件紀錄檔案"""
+    try:
+        data = request.get_json()
+        date_from = data.get('date_from', '')
+        date_to = data.get('date_to', '')
+        
+        # 如果沒有指定日期範圍，預設為今天
+        if not date_from:
+            date_from = datetime.datetime.now().strftime("%Y-%m-%d")
+        if not date_to:
+            date_to = date_from
+        
+        cleared_files = []
+        
+        # 轉換日期格式並生成日期列表
+        try:
+            start_date = datetime.datetime.strptime(date_from, "%Y-%m-%d")
+            end_date = datetime.datetime.strptime(date_to, "%Y-%m-%d")
+            
+            # 生成日期範圍
+            current_date = start_date
+            while current_date <= end_date:
+                date_str = current_date.strftime("%Y%m%d")
+                
+                # 搜尋該日期的案件檔案
+                if os.path.exists("record"):
+                    for filename in os.listdir("record"):
+                        if filename.startswith(f"case_{date_str}") and filename.endswith(".txt"):
+                            file_path = os.path.join("record", filename)
+                            if os.path.exists(file_path):
+                                os.remove(file_path)
+                                cleared_files.append(filename)
+                
+                current_date += datetime.timedelta(days=1)
+        
+        except ValueError as e:
+            return jsonify({"success": False, "error": f"日期格式錯誤: {str(e)}"})
+        
+        # 記錄清除操作
+        log_user_action("CLEAR_CASE_RECORDS", f"Cleared records from {date_from} to {date_to}")
+        
+        message = f"已清除 {len(cleared_files)} 個案件紀錄檔案" if cleared_files else "沒有找到要清除的案件紀錄檔案"
+        return jsonify({"success": True, "message": message, "cleared_files": cleared_files})
+        
+    except Exception as e:
+        logging.error(f"Clear records failed: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/api/records", methods=["GET"])
+def api_get_all_records():
+    """API: 獲取所有案件紀錄 (JSON格式)"""
+    try:
+        # 獲取查詢參數
+        case_type = request.args.get('type', 'all')
+        date_from = request.args.get('from', '')
+        date_to = request.args.get('to', '')
+        limit = int(request.args.get('limit', 100))  # 預設最多100筆
+        offset = int(request.args.get('offset', 0))  # 分頁偏移
+        
+        records = []
+        stats = {
+            'total_cases': 0,
+            'ohca_cases': 0,
+            'internal_cases': 0,
+            'surgical_cases': 0
+        }
+        
+        # 如果沒有指定日期範圍，預設為今天
+        if not date_from:
+            date_from = datetime.datetime.now().strftime("%Y-%m-%d")
+        if not date_to:
+            date_to = date_from
+        
+        # 轉換日期格式並生成日期列表
+        try:
+            start_date = datetime.datetime.strptime(date_from, "%Y-%m-%d")
+            end_date = datetime.datetime.strptime(date_to, "%Y-%m-%d")
+            
+            # 生成日期範圍
+            current_date = start_date
+            while current_date <= end_date:
+                date_str = current_date.strftime("%Y%m%d")
+                
+                # 搜尋該日期的案件檔案
+                if os.path.exists("record"):
+                    for filename in os.listdir("record"):
+                        if filename.startswith(f"case_{date_str}") and filename.endswith(".txt"):
+                            try:
+                                # 解析檔案名稱獲取時間
+                                time_str = filename.replace("case_", "").replace(".txt", "")
+                                case_time = datetime.datetime.strptime(time_str, "%Y%m%d_%H%M%S")
+                                
+                                # 讀取案件檔案
+                                file_path = os.path.join("record", filename)
+                                with open(file_path, 'r', encoding='utf-8') as f:
+                                    content = f.read()
+                                
+                                # 解析完整案件資訊
+                                case_info = parse_case_record_full(content)
+                                case_info['filename'] = filename
+                                case_info['case_id'] = time_str
+                                case_info['timestamp'] = case_time.isoformat()
+                                case_info['time'] = case_time.strftime("%Y-%m-%d %H:%M:%S")
+                                
+                                # 統計
+                                stats['total_cases'] += 1
+                                if case_info.get('event_type') == 'OHCA':
+                                    stats['ohca_cases'] += 1
+                                elif case_info.get('event_type') == '內科':
+                                    stats['internal_cases'] += 1
+                                elif case_info.get('event_type') == '外科':
+                                    stats['surgical_cases'] += 1
+                                
+                                # 類型過濾
+                                if case_type == 'all' or case_info.get('event_type') == case_type:
+                                    records.append(case_info)
+                                    
+                            except Exception as e:
+                                logging.error(f"Failed to parse case record {filename}: {e}")
+                                continue
+                
+                current_date += datetime.timedelta(days=1)
+        
+        except ValueError as e:
+            return jsonify({"success": False, "error": f"日期格式錯誤: {str(e)}"})
+        
+        # 按時間排序（最新的在前）
+        records.sort(key=lambda x: x['case_id'], reverse=True)
+        
+        # 分頁處理
+        total_records = len(records)
+        records = records[offset:offset + limit]
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "records": records,
+                "pagination": {
+                    "total": total_records,
+                    "limit": limit,
+                    "offset": offset,
+                    "has_more": offset + limit < total_records
+                },
+                "stats": stats,
+                "filters": {
+                    "case_type": case_type,
+                    "date_from": date_from,
+                    "date_to": date_to
+                }
+            },
+            "timestamp": datetime.datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logging.error(f"API get all records failed: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/api/records/<case_id>", methods=["GET"])
+def api_get_single_record(case_id):
+    """API: 獲取單一案件紀錄 (JSON格式)"""
+    try:
+        # 搜尋案件檔案
+        filename = f"case_{case_id}.txt"
+        file_path = os.path.join("record", filename)
+        
+        if not os.path.exists(file_path):
+            return jsonify({"success": False, "error": "案件紀錄不存在"})
+        
+        # 讀取案件檔案
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # 解析完整案件資訊
+        case_info = parse_case_record_full(content)
+        case_info['filename'] = filename
+        case_info['case_id'] = case_id
+        
+        # 解析時間
+        try:
+            case_time = datetime.datetime.strptime(case_id, "%Y%m%d_%H%M%S")
+            case_info['timestamp'] = case_time.isoformat()
+            case_info['time'] = case_time.strftime("%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            case_info['timestamp'] = None
+            case_info['time'] = None
+        
+        return jsonify({
+            "success": True,
+            "data": case_info,
+            "timestamp": datetime.datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logging.error(f"API get single record failed: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+def parse_case_record_full(content):
+    """解析案件紀錄檔案內容（完整版本）"""
+    case_info = {}
+    lines = content.split('\n')
+    
+    # 初始化所有欄位
+    case_info.update({
+        'event_type': None,
+        'location': None,
+        'room': None,
+        'content': None,
+        'message': None,
+        'ip': None,
+        'country': None,
+        'city': None,
+        'user_agent': None,
+        'discord_success': False,
+        'line_success': False,
+        'discord_message_id': None,
+        'server_time': None,
+        'file_path': None
+    })
+    
+    current_section = None
+    message_lines = []
+    
+    for line in lines:
+        line = line.strip()
+        
+        # 識別區段
+        if '案件資訊 / Case Information:' in line:
+            current_section = 'case_info'
+            continue
+        elif '通報者資訊 / Reporter Information:' in line:
+            current_section = 'reporter_info'
+            continue
+        elif '廣播結果 / Broadcast Results:' in line:
+            current_section = 'broadcast_results'
+            continue
+        elif '完整訊息內容 / Complete Message:' in line:
+            current_section = 'message'
+            continue
+        elif '系統資訊 / System Information:' in line:
+            current_section = 'system_info'
+            continue
+        elif line.startswith('-') or line.startswith('='):
+            continue
+        
+        # 解析各區段內容
+        if current_section == 'case_info':
+            if '案件分類 / Case Type:' in line:
+                case_info['event_type'] = line.split(':', 1)[1].strip()
+            elif '案件地點 / Location:' in line:
+                case_info['location'] = line.split(':', 1)[1].strip()
+            elif '案件位置 / Position:' in line:
+                case_info['room'] = line.split(':', 1)[1].strip()
+            elif '補充資訊 / Additional Info:' in line:
+                case_info['content'] = line.split(':', 1)[1].strip()
+        
+        elif current_section == 'reporter_info':
+            if 'IP 地址 / IP Address:' in line:
+                case_info['ip'] = line.split(':', 1)[1].strip()
+            elif '國家 / Country:' in line:
+                case_info['country'] = line.split(':', 1)[1].strip()
+            elif '城市 / City:' in line:
+                case_info['city'] = line.split(':', 1)[1].strip()
+            elif '瀏覽器 / User Agent:' in line:
+                case_info['user_agent'] = line.split(':', 1)[1].strip()
+        
+        elif current_section == 'broadcast_results':
+            if 'Discord 發送 / Discord Send:' in line:
+                case_info['discord_success'] = line.split(':', 1)[1].strip().lower() == 'true'
+            elif 'LINE 發送 / LINE Send:' in line:
+                case_info['line_success'] = line.split(':', 1)[1].strip().lower() == 'true'
+            elif 'Discord 訊息 ID / Discord Message ID:' in line:
+                case_info['discord_message_id'] = line.split(':', 1)[1].strip()
+        
+        elif current_section == 'message':
+            if not line.startswith('-'):
+                message_lines.append(line)
+        
+        elif current_section == 'system_info':
+            if '伺服器時間 / Server Time:' in line:
+                case_info['server_time'] = line.split(':', 1)[1].strip()
+            elif '檔案路徑 / File Path:' in line:
+                case_info['file_path'] = line.split(':', 1)[1].strip()
+    
+    # 組合完整訊息
+    case_info['message'] = '\n'.join(message_lines)
+    
+    return case_info
+
+
+@app.route("/api/stats", methods=["GET"])
+def api_get_stats():
+    """API: 獲取案件統計資料 (JSON格式)"""
+    try:
+        date_from = request.args.get('from', '')
+        date_to = request.args.get('to', '')
+        
+        # 如果沒有指定日期範圍，預設為今天
+        if not date_from:
+            date_from = datetime.datetime.now().strftime("%Y-%m-%d")
+        if not date_to:
+            date_to = date_from
+        
+        stats = {
+            'total_cases': 0,
+            'ohca_cases': 0,
+            'internal_cases': 0,
+            'surgical_cases': 0,
+            'by_location': {},
+            'by_hour': {},
+            'by_date': {}
+        }
+        
+        # 轉換日期格式並生成日期列表
+        try:
+            start_date = datetime.datetime.strptime(date_from, "%Y-%m-%d")
+            end_date = datetime.datetime.strptime(date_to, "%Y-%m-%d")
+            
+            # 生成日期範圍
+            current_date = start_date
+            while current_date <= end_date:
+                date_str = current_date.strftime("%Y%m%d")
+                
+                # 搜尋該日期的案件檔案
+                if os.path.exists("record"):
+                    for filename in os.listdir("record"):
+                        if filename.startswith(f"case_{date_str}") and filename.endswith(".txt"):
+                            try:
+                                # 解析檔案名稱獲取時間
+                                time_str = filename.replace("case_", "").replace(".txt", "")
+                                case_time = datetime.datetime.strptime(time_str, "%Y%m%d_%H%M%S")
+                                
+                                # 讀取案件檔案
+                                file_path = os.path.join("record", filename)
+                                with open(file_path, 'r', encoding='utf-8') as f:
+                                    content = f.read()
+                                
+                                # 解析案件資訊
+                                case_info = parse_case_record(content)
+                                
+                                # 統計
+                                stats['total_cases'] += 1
+                                if case_info.get('event_type') == 'OHCA':
+                                    stats['ohca_cases'] += 1
+                                elif case_info.get('event_type') == '內科':
+                                    stats['internal_cases'] += 1
+                                elif case_info.get('event_type') == '外科':
+                                    stats['surgical_cases'] += 1
+                                
+                                # 地點統計
+                                location = case_info.get('location', 'Unknown')
+                                stats['by_location'][location] = stats['by_location'].get(location, 0) + 1
+                                
+                                # 小時統計
+                                hour = case_time.hour
+                                stats['by_hour'][hour] = stats['by_hour'].get(hour, 0) + 1
+                                
+                                # 日期統計
+                                date_key = case_time.strftime("%Y-%m-%d")
+                                stats['by_date'][date_key] = stats['by_date'].get(date_key, 0) + 1
+                                    
+                            except Exception as e:
+                                logging.error(f"Failed to parse case record {filename}: {e}")
+                                continue
+                
+                current_date += datetime.timedelta(days=1)
+        
+        except ValueError as e:
+            return jsonify({"success": False, "error": f"日期格式錯誤: {str(e)}"})
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "stats": stats,
+                "filters": {
+                    "date_from": date_from,
+                    "date_to": date_to
+                }
+            },
+            "timestamp": datetime.datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logging.error(f"API get stats failed: {e}")
         return jsonify({"success": False, "error": str(e)})
 
 

@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>案件紀錄管理 / Case Records Management - 緊急事件通報系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9em;
+        }
+
+        .control-group select,
+        .control-group input {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9em;
+            transition: border-color 0.3s ease;
+        }
+
+        .control-group select:focus,
+        .control-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(45deg, #6c757d, #5a6268);
+        }
+
+        .btn.danger {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+        }
+
+        .btn.success {
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border-left: 5px solid #667eea;
+        }
+
+        .stat-card h3 {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .records-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .record-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .record-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .record-id {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .record-time {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .record-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.8em;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .info-value {
+            font-size: 0.9em;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .record-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 0.8em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .no-records {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .back-button {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .back-button:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .record-content {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="/system/test" class="back-button">← 返回測試頁面 / Back to Test Page</a>
+
+        <div class="header">
+            <h1>📋 案件紀錄管理 / Case Records Management</h1>
+            <p>查看和管理所有案件通報紀錄 / View and manage all case report records</p>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <h3>📊 總案件數</h3>
+                <p id="total-cases">載入中...</p>
+            </div>
+            <div class="stat-card">
+                <h3>🚨 OHCA 案件</h3>
+                <p id="ohca-cases">載入中...</p>
+            </div>
+            <div class="stat-card">
+                <h3>🏥 內科案件</h3>
+                <p id="internal-cases">載入中...</p>
+            </div>
+            <div class="stat-card">
+                <h3>🔪 外科案件</h3>
+                <p id="surgical-cases">載入中...</p>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>案件類型 / Case Type</label>
+                <select id="case-type">
+                    <option value="all">全部 / All</option>
+                    <option value="OHCA">OHCA</option>
+                    <option value="內科">內科 / Internal</option>
+                    <option value="外科">外科 / Surgical</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>開始日期 / Start Date</label>
+                <input type="date" id="date-from" />
+            </div>
+
+            <div class="control-group">
+                <label>結束日期 / End Date</label>
+                <input type="date" id="date-to" />
+            </div>
+
+            <button class="btn" onclick="loadRecords()">🔍 載入紀錄 / Load Records</button>
+            <button class="btn secondary" onclick="exportRecords()">📥 匯出紀錄 / Export Records</button>
+            <button class="btn danger" onclick="clearRecords()">🗑️ 清除紀錄 / Clear Records</button>
+        </div>
+
+        <div class="records-container" id="records-container">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                載入案件紀錄中... / Loading case records...
+            </div>
+        </div>
+    </div>
+
+    <!-- 案件詳情模態框 -->
+    <div id="recordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">案件詳情 / Case Details</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="modalContent" class="record-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // 設定預設日期
+        document.addEventListener('DOMContentLoaded', function () {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date-from').value = today;
+            document.getElementById('date-to').value = today;
+            loadRecords();
+        });
+
+        async function loadRecords() {
+            const caseType = document.getElementById('case-type').value;
+            const dateFrom = document.getElementById('date-from').value;
+            const dateTo = document.getElementById('date-to').value;
+
+            const container = document.getElementById('records-container');
+            container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>載入案件紀錄中... / Loading case records...</div>';
+
+            try {
+                const response = await fetch('/system/records/api', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        case_type: caseType,
+                        date_from: dateFrom,
+                        date_to: dateTo
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayRecords(data.records);
+                    updateStats(data.stats);
+                } else {
+                    container.innerHTML = '<div class="no-records">載入案件紀錄失敗：' + data.error + '</div>';
+                }
+            } catch (error) {
+                container.innerHTML = '<div class="no-records">載入案件紀錄失敗：' + error.message + '</div>';
+            }
+        }
+
+        function displayRecords(records) {
+            const container = document.getElementById('records-container');
+
+            if (records.length === 0) {
+                container.innerHTML = '<div class="no-records">沒有找到符合條件的案件紀錄 / No case records found matching criteria</div>';
+                return;
+            }
+
+            let html = '';
+            records.forEach(record => {
+                html += `
+                    <div class="record-item" onclick="viewRecord('${record.filename}')">
+                        <div class="record-header">
+                            <div class="record-id">案件編號: ${record.case_id}</div>
+                            <div class="record-time">${record.time}</div>
+                        </div>
+                        <div class="record-info">
+                            <div class="info-item">
+                                <div class="info-label">案件類型 / Case Type</div>
+                                <div class="info-value">${record.event_type}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">地點 / Location</div>
+                                <div class="info-value">${record.location}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">位置 / Position</div>
+                                <div class="info-value">${record.room}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">通報者 IP / Reporter IP</div>
+                                <div class="info-value">${record.ip}</div>
+                            </div>
+                        </div>
+                        <div class="record-actions">
+                            <button class="btn btn-small success" onclick="event.stopPropagation(); viewRecord('${record.filename}')">查看詳情 / View Details</button>
+                            <button class="btn btn-small secondary" onclick="event.stopPropagation(); downloadRecord('${record.filename}')">下載 / Download</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function updateStats(stats) {
+            document.getElementById('total-cases').textContent = stats.total_cases || 0;
+            document.getElementById('ohca-cases').textContent = stats.ohca_cases || 0;
+            document.getElementById('internal-cases').textContent = stats.internal_cases || 0;
+            document.getElementById('surgical-cases').textContent = stats.surgical_cases || 0;
+        }
+
+        async function viewRecord(filename) {
+            try {
+                const response = await fetch(`/system/records/view/${filename}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('modalTitle').textContent = `案件詳情 - ${filename}`;
+                    document.getElementById('modalContent').textContent = data.content;
+                    document.getElementById('recordModal').style.display = 'block';
+                } else {
+                    alert('載入案件詳情失敗：' + data.error);
+                }
+            } catch (error) {
+                alert('載入案件詳情失敗：' + error.message);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('recordModal').style.display = 'none';
+        }
+
+        async function downloadRecord(filename) {
+            try {
+                const response = await fetch(`/system/records/download/${filename}`);
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                } else {
+                    alert('下載失敗 / Download failed');
+                }
+            } catch (error) {
+                alert('下載失敗：' + error.message);
+            }
+        }
+
+        async function exportRecords() {
+            const caseType = document.getElementById('case-type').value;
+            const dateFrom = document.getElementById('date-from').value;
+            const dateTo = document.getElementById('date-to').value;
+
+            try {
+                const response = await fetch('/system/records/export', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        case_type: caseType,
+                        date_from: dateFrom,
+                        date_to: dateTo
+                    })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `case_records_${dateFrom}_to_${dateTo}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                } else {
+                    alert('匯出失敗 / Export failed');
+                }
+            } catch (error) {
+                alert('匯出失敗：' + error.message);
+            }
+        }
+
+        async function clearRecords() {
+            const dateFrom = document.getElementById('date-from').value;
+            const dateTo = document.getElementById('date-to').value;
+
+            const confirmMessage = dateFrom === dateTo
+                ? `確定要清除 ${dateFrom} 的案件紀錄嗎？此操作無法復原！\nAre you sure you want to clear case records for ${dateFrom}? This action cannot be undone!`
+                : `確定要清除 ${dateFrom} 到 ${dateTo} 的案件紀錄嗎？此操作無法復原！\nAre you sure you want to clear case records from ${dateFrom} to ${dateTo}? This action cannot be undone!`;
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/system/records/clear', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        date_from: dateFrom,
+                        date_to: dateTo
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(data.message);
+                    loadRecords();
+                } else {
+                    alert('清除失敗：' + data.error);
+                }
+            } catch (error) {
+                alert('清除失敗：' + error.message);
+            }
+        }
+
+        // 點擊模態框外部關閉
+        window.onclick = function (event) {
+            const modal = document.getElementById('recordModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+
+</html>

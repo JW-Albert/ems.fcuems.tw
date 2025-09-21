@@ -25,9 +25,11 @@ Please refer to [Collaboration Guidelines](COLLABORATION_GUIDELINES.md) for subm
 
 6. **詳細日誌記錄 / Detailed Logging System** - 完整記錄使用者動作、請求回應、地理位置資訊，支援 Cloudflare Tunnel。Comprehensive logging of user actions, request responses, and geographic information with Cloudflare Tunnel support.
 
-7. **伺服器錯誤與頁面未建置提醒 / Server Error and Page Not Found Handling** - 提供自訂的 404 和 500 錯誤頁面，提升使用體驗。Provides custom 404 and 500 error pages to improve user experience.
+7. **案件紀錄管理 / Case Record Management** - 每個案件自動儲存為獨立檔案，包含完整案件資訊和通報者資料。Each case is automatically saved as an individual file with complete case information and reporter data.
 
-8. **隱私與版權聲明 / Privacy and Copyright Statements** - 系統包含隱私權保護政策與版權宣告，確保資料使用合規。The system includes privacy protection policies and copyright statements to ensure compliant data usage.
+8. **伺服器錯誤與頁面未建置提醒 / Server Error and Page Not Found Handling** - 提供自訂的 404 和 500 錯誤頁面，提升使用體驗。Provides custom 404 and 500 error pages to improve user experience.
+
+9. **隱私與版權聲明 / Privacy and Copyright Statements** - 系統包含隱私權保護政策與版權宣告，確保資料使用合規。The system includes privacy protection policies and copyright statements to ensure compliant data usage.
 
 ## 使用技術 / Technologies Used
 
@@ -60,7 +62,8 @@ templates/
     │   └── 隱私權保護政策.html - 隱私權政策 / Privacy policy
     └── system/            - 系統管理頁面模板 / System management page templates
         ├── test.html     - 系統測試頁面 / System test page
-        └── logs.html     - 日誌管理頁面 / Log management page
+        ├── logs.html     - 日誌管理頁面 / Log management page
+        └── records.html  - 案件紀錄管理頁面 / Case records management page
 server/
     ├── boot.sh           - 伺服器啟動腳本 / Server boot script
     ├── setup.sh          - 系統安裝腳本 / System installation script
@@ -128,6 +131,30 @@ The system provides comprehensive log management functionality, recording all us
 - 檔案命名格式：`flask_app_YYYYMMDD.log` / File naming format: `flask_app_YYYYMMDD.log`
 - 支援多天日誌查詢和匯出 / Support multi-day log query and export
 - 自動日誌輪轉，避免單一檔案過大 / Automatic log rotation to prevent oversized files
+
+### 案件紀錄管理 / Case Record Management
+
+系統提供完整的案件紀錄管理功能，每個案件都會自動儲存為獨立檔案：
+
+The system provides comprehensive case record management functionality, with each case automatically saved as an individual file:
+
+1. 訪問案件紀錄頁面 / Access case records page: `http://127.0.0.1:5000/system/records`
+2. 查看案件統計資料 / View case statistics
+3. 按案件類型、日期範圍過濾 / Filter by case type and date range
+4. 查看案件詳情和下載個別檔案 / View case details and download individual files
+5. 匯出和清除案件紀錄 / Export and clear case records
+
+**案件紀錄內容包括 / Case record content includes:**
+- 案件基本資訊（類型、地點、位置、補充資訊）/ Basic case information (type, location, position, additional info)
+- 通報者資訊（IP、地理位置、瀏覽器）/ Reporter information (IP, geographic location, browser)
+- 廣播結果（Discord、LINE 發送狀態）/ Broadcast results (Discord, LINE send status)
+- 完整訊息內容和系統資訊 / Complete message content and system information
+
+**案件檔案管理 / Case File Management:**
+- 檔案命名格式：`case_YYYYMMDD_HHMMSS.txt` / File naming format: `case_YYYYMMDD_HHMMSS.txt`
+- 每個案件一個檔案，便於管理和查詢 / One file per case for easy management and query
+- 支援多天案件查詢和匯出 / Support multi-day case query and export
+- 自動儲存到 `record/` 資料夾 / Automatically saved to `record/` folder
 
 ## 環境變數配置 / Environment Variables Configuration
 
