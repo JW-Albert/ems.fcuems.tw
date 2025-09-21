@@ -423,7 +423,7 @@ def process_03_location():
     else:
         # 自訂地點：新增到地點表
         session["locat"] = "99"
-        session["locat_table"].update({99: custom_location})
+        session["locat_table"].update({"99": custom_location})
         logger_manager.log_user_action("自訂案件地點", f"自訂地點: {custom_location}")
 
     return redirect("/Inform/Read_05_Room")
