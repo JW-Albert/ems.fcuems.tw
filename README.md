@@ -7,9 +7,16 @@ This project is an emergency management system designed for the Feng Chia Univer
 
 ## 協作指南 / Collaboration Guidelines
 
-請參閱 [協作指南](COLLABORATION_GUIDELINES.md)，了解提交流程與規範。
+請參閱 [協作指南](docs/COLLABORATION_GUIDELINES.md)，了解提交流程與規範。
 
-Please refer to [Collaboration Guidelines](COLLABORATION_GUIDELINES.md) for submission processes and standards.
+Please refer to [Collaboration Guidelines](docs/COLLABORATION_GUIDELINES.md) for submission processes and standards.
+
+## 📚 文檔導航 / Documentation Navigation
+
+- 📖 **[安裝指南](docs/INSTALLATION_GUIDE.md)** - 完整的安裝和部署指南 / Complete installation and deployment guide
+- 🔧 **[API文檔](docs/API_DOCUMENTATION.md)** - 詳細的API技術文檔 / Detailed API technical documentation  
+- 🌐 **[公開API文檔](docs/API_DOCUMENTATION_PUBLIC.md)** - 外部系統整合API文檔 / External system integration API documentation
+- 🤝 **[協作指南](docs/COLLABORATION_GUIDELINES.md)** - 專案協作規範 / Project collaboration guidelines
 
 ## 功能簡介 / Features
 
@@ -36,7 +43,7 @@ Please refer to [Collaboration Guidelines](COLLABORATION_GUIDELINES.md) for subm
 - **後端框架 / Backend Framework**: Flask
 - **前端技術 / Frontend Technologies**: HTML、CSS
 - **配置管理 / Configuration Management**: .env 檔案 / .env files
-- **伺服器環境 / Server Environment**: Debian 10
+- **伺服器環境 / Server Environment**: Debian 13
 - **其他 / Others**: LINE Bot API 用於訊息廣播功能 / LINE Bot API for message broadcasting functionality
 
 ## 系統架構 / System Architecture
@@ -45,21 +52,22 @@ Please refer to [Collaboration Guidelines](COLLABORATION_GUIDELINES.md) for subm
 
 This system adopts a **dual-website architecture**, separating main functionality from administrative functions for enhanced security:
 
-### 主網站 (Main Website) - 端口 5000
+### 主網站 (Main Website) - 端口 8000
 - **用途 / Purpose**: 緊急事件通報的主要介面 / Main interface for emergency incident reporting
 - **檔案 / File**: `app.py`
-- **功能 / Features**: 案件填報、LINE Bot 回調處理 / Case reporting, LINE Bot callback handling
+- **功能 / Features**: 案件填報、LINE Bot 回調處理、公開API / Case reporting, LINE Bot callback handling, public APIs
 
-### 管理網站 (Admin Website) - 端口 5001
+### 管理網站 (Admin Website) - 端口 5000
 - **用途 / Purpose**: 系統管理介面 / System administration interface
 - **檔案 / File**: `admin_app.py`
 - **功能 / Features**: 日誌管理、案件紀錄管理、系統測試 / Log management, case records management, system testing
+- **訪問限制 / Access Restriction**: 通過 Zero Trust 保護 / Protected by Zero Trust
 
 ## 系統結構 / System Structure
 
 ```plaintext
-app.py                     - 主程式檔案 / Main application file (端口 5000)
-admin_app.py               - 管理網站檔案 / Admin website file (端口 5001)
+app.py                     - 主程式檔案 / Main application file (端口 8000)
+admin_app.py               - 管理網站檔案 / Admin website file (端口 5000)
 config.py                  - 配置管理模組 / Configuration management module
 logger.py                  - 日誌管理模組 / Logging management module
 case_manager.py            - 案件管理模組 / Case management module
@@ -102,7 +110,32 @@ requirements.txt          - Python 套件依賴 / Python package dependencies
 
 ## 安裝與執行 / Installation and Execution
 
-### 前置需求 / Prerequisites
+### 快速安裝 / Quick Installation
+
+**推薦方式：使用統一安裝腳本 / Recommended: Use Unified Installation Script**
+
+```bash
+# 1. 將應用程式檔案複製到目標目錄 / Copy application files to target directory
+sudo cp -r . /var/www/ems/web/
+
+# 2. 執行統一安裝腳本 / Run unified installation script
+sudo ./server/setup_all.sh
+```
+
+**統一安裝腳本會自動完成以下工作 / The unified installation script will automatically complete the following tasks:**
+
+1. ✅ 建立必要的目錄結構 / Create necessary directory structure
+2. ✅ 安裝系統依賴套件 (Python 3, pip, venv, dev tools) / Install system dependencies
+3. ✅ 建立Python虛擬環境 / Create Python virtual environment
+4. ✅ 安裝Python依賴套件 / Install Python dependencies
+5. ✅ 建立logs、record、data目錄 / Create logs, record, data directories
+6. ✅ 設定正確的目錄權限 / Set correct directory permissions
+7. ✅ 安裝systemd服務 / Install systemd services
+8. ✅ 啟動服務 / Start services
+
+### 手動安裝 / Manual Installation
+
+#### 前置需求 / Prerequisites
 
 1. 安裝 Python 3.8 或更新版本 / Install Python 3.8 or newer
 2. 安裝相關套件，請執行以下指令 / Install required packages with the following commands:
@@ -113,28 +146,28 @@ requirements.txt          - Python 套件依賴 / Python package dependencies
    - 複製 `data/.env.example` 到 `data/.env` / Copy `data/.env.example` to `data/.env`
    - 填入您的 LINE Bot API 金鑰、Discord Webhook URL 等 / Fill in your LINE Bot API keys, Discord Webhook URL, etc.
 
-### 執行方式 / Execution Methods
+#### 執行方式 / Execution Methods
 
-#### 開發環境執行 / Development Environment Execution
+**開發環境執行 / Development Environment Execution**:
 
 1. **主網站 / Main Website**:
    ```bash
    python app.py
    ```
-   訪問 `http://127.0.0.1:5000` / Visit `http://127.0.0.1:5000`
+   訪問 `http://127.0.0.1:8000` / Visit `http://127.0.0.1:8000`
 
 2. **管理網站 / Admin Website**:
    ```bash
    python admin_app.py
    ```
-   訪問 `http://127.0.0.1:5001` / Visit `http://127.0.0.1:5001`
+   訪問 `http://127.0.0.1:5000` / Visit `http://127.0.0.1:5000`
 
-#### 生產環境部署 / Production Environment Deployment
+**生產環境部署 / Production Environment Deployment**:
 
 **統一安裝腳本 / Unified Installation Script**:
 ```bash
 # 安裝全部服務 / Install all services (default)
-./server/setup.sh
+./server/setup_all.sh
 
 # 只安裝主網站 / Install main website only
 ./server/setup.sh main
@@ -158,9 +191,9 @@ requirements.txt          - Python 套件依賴 / Python package dependencies
 3. **服務管理 / Service Management**:
    ```bash
    # 主網站服務 / Main website service
-   systemctl start ems-flask    # 啟動 / Start
-   systemctl stop ems-flask     # 停止 / Stop
-   systemctl restart ems-flask  # 重啟 / Restart
+   systemctl start ems-main     # 啟動 / Start
+   systemctl stop ems-main      # 停止 / Stop
+   systemctl restart ems-main   # 重啟 / Restart
    
    # 管理網站服務 / Admin website service
    systemctl start ems-admin    # 啟動 / Start
@@ -212,12 +245,41 @@ The system provides comprehensive log management functionality, recording all us
 
 The system provides comprehensive case record management functionality, with each case automatically saved as an individual file:
 
-1. 訪問管理網站 / Access admin website: `http://127.0.0.1:5001`
+1. 訪問管理網站 / Access admin website: `http://127.0.0.1:5000`
 2. 點擊「案件紀錄」卡片 / Click "Case Records" card
 3. 查看案件統計資料 / View case statistics
 4. 按案件類型、日期範圍過濾 / Filter by case type and date range
 5. 查看案件詳情和下載個別檔案 / View case details and download individual files
 6. 匯出和清除案件紀錄 / Export and clear case records
+
+### 公開API使用 / Public API Usage
+
+系統提供公開的API接口，供外部系統整合使用：
+
+The system provides public API interfaces for external system integration:
+
+**API端點 / API Endpoints**:
+- `GET /api/stats` - 系統統計資料 / System statistics
+- `GET /api/cases` - 案件列表 / Case list
+- `GET /api/cases/{case_id}` - 案件詳情 / Case details
+- `GET /api/logs` - 日誌資料 / Log data
+
+**使用範例 / Usage Examples**:
+```bash
+# 獲取系統統計
+curl "http://localhost:8000/api/stats"
+
+# 獲取最近10個案件
+curl "http://localhost:8000/api/cases?limit=10"
+
+# 獲取特定案件詳情
+curl "http://localhost:8000/api/cases/case_20250922_001.txt"
+
+# 獲取今日日誌
+curl "http://localhost:8000/api/logs?date_from=2025-09-22&date_to=2025-09-22"
+```
+
+**詳細文檔 / Detailed Documentation**: 請參閱 [API_DOCUMENTATION_PUBLIC.md](docs/API_DOCUMENTATION_PUBLIC.md)
 
 **案件紀錄內容包括 / Case record content includes:**
 - 案件基本資訊（類型、地點、位置、補充資訊）/ Basic case information (type, location, position, additional info)

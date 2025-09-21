@@ -18,7 +18,6 @@ from config import config
 from logger import logger_manager
 from case_manager import case_manager
 from message_broadcaster import message_broadcaster
-from api_routes import APIRoutes
 
 # 創建Flask應用程式
 app = Flask(__name__, static_folder="static", static_url_path="/")
@@ -103,8 +102,189 @@ def broadcast_message(group_id, message):
     """廣播訊息到LINE群組"""
     line_bot_api.push_message(group_id, TextSendMessage(text=message))
 
-# 註冊API路由
-api_routes = APIRoutes(app)
+# 公開API路由（供外部訪問）
+@app.route("/api/stats", methods=["GET"])
+def get_stats():
+    """獲取系統統計資料"""
+    try:
+        # 獲取案件統計
+        case_files = case_manager.get_case_files()
+        case_stats = case_manager.get_case_stats()
+        
+        # 獲取日誌統計
+        log_files = logger_manager.get_log_files()
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "cases": {
+                    "total": len(case_files),
+                    "today": case_stats.get('total_cases', 0),
+                    "ohca": case_stats.get('ohca_cases', 0),
+                    "internal": case_stats.get('internal_cases', 0),
+                    "surgical": case_stats.get('surgical_cases', 0)
+                },
+                "logs": {
+                    "total_files": len(log_files),
+                    "latest_file": log_files[0]['filename'] if log_files else None
+                },
+                "system": {
+                    "status": "running",
+                    "uptime": "active"
+                }
+            }
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/cases", methods=["GET"])
+def get_cases():
+    """獲取案件列表（公開API）"""
+    try:
+        # 獲取查詢參數
+        case_type = request.args.get('type', 'all')
+        limit = int(request.args.get('limit', 10))
+        offset = int(request.args.get('offset', 0))
+        
+        # 獲取案件檔案
+        case_files = case_manager.get_case_files()
+        
+        # 過濾案件
+        filtered_cases = []
+        for case_file in case_files[offset:offset+limit]:
+            content = case_manager.read_case_file(case_file['filename'])
+            if content:
+                case_info = case_manager.parse_case_record(content)
+                if case_type == 'all' or case_info.get('event_type') == case_type:
+                    case_info.update(case_file)
+                    filtered_cases.append(case_info)
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "cases": filtered_cases,
+                "total": len(case_files),
+                "limit": limit,
+                "offset": offset
+            }
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/cases/<case_id>", methods=["GET"])
+def get_case_detail(case_id):
+    """獲取特定案件詳情"""
+    try:
+        content = case_manager.read_case_file(case_id)
+        if content:
+            case_info = case_manager.parse_case_record_full(content)
+            return jsonify({
+                "success": True,
+                "data": case_info
+            })
+        else:
+            return jsonify({"success": False, "error": "案件不存在"}), 404
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/logs", methods=["GET"])
+def get_logs():
+    """獲取日誌資料（公開API）"""
+    try:
+        # 獲取查詢參數
+        log_type = request.args.get('type', 'all')
+        limit = int(request.args.get('limit', 50))
+        date_from = request.args.get('date_from', '')
+        date_to = request.args.get('date_to', '')
+        
+        # 如果沒有指定日期範圍，預設為今天
+        if not date_from:
+            date_from = datetime.datetime.now().strftime("%Y-%m-%d")
+        if not date_to:
+            date_to = date_from
+        
+        logs = []
+        stats = {
+            'total_requests': 0,
+            'user_actions': 0,
+            'incidents': 0,
+            'tests': 0
+        }
+        
+        # 轉換日期格式並生成日期列表
+        try:
+            start_date = datetime.datetime.strptime(date_from, "%Y-%m-%d")
+            end_date = datetime.datetime.strptime(date_to, "%Y-%m-%d")
+            
+            # 生成日期範圍
+            current_date = start_date
+            while current_date <= end_date:
+                date_str = current_date.strftime("%Y%m%d")
+                log_filename = logger_manager.get_log_filename(date_str)
+                
+                # 讀取日誌檔案
+                if os.path.exists(log_filename):
+                    log_lines = logger_manager.read_log_file(os.path.basename(log_filename))
+                    
+                    for line in log_lines:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        
+                        # 解析日誌行
+                        try:
+                            if ' [' in line and '] ' in line:
+                                parts = line.split(' [', 2)
+                                if len(parts) >= 2:
+                                    timestamp = parts[0]
+                                    level_message = parts[1]
+                                    if '] ' in level_message:
+                                        level, message = level_message.split('] ', 1)
+                                        level = level.strip()
+                                        message = message.strip()
+                                        
+                                        # 類型過濾
+                                        if log_type != 'all' and level.lower() != log_type.lower():
+                                            continue
+                                        
+                                        logs.append({
+                                            'timestamp': timestamp,
+                                            'type': level,
+                                            'content': message
+                                        })
+                                        
+                                        # 統計
+                                        stats['total_requests'] += 1
+                                        if 'USER_ACTION' in message or 'User Action' in message:
+                                            stats['user_actions'] += 1
+                                        elif 'INCIDENT' in message or '案件' in message:
+                                            stats['incidents'] += 1
+                                        elif 'TEST' in message or '測試' in message:
+                                            stats['tests'] += 1
+                        except Exception:
+                            continue
+                
+                current_date += datetime.timedelta(days=1)
+        
+        except ValueError as e:
+            return jsonify({"success": False, "error": f"日期格式錯誤: {str(e)}"}), 400
+        
+        # 按時間排序並限制數量
+        logs.sort(key=lambda x: x['timestamp'], reverse=True)
+        logs = logs[:limit]
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "logs": logs,
+                "stats": stats,
+                "total": len(logs)
+            }
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# 注意：敏感操作（如清除、匯出）仍保留在管理網站中
 
 # 請求前處理
 @app.before_request
