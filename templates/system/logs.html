@@ -318,9 +318,9 @@
     <script>
         // 設定預設日期
         document.addEventListener('DOMContentLoaded', function () {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('date-from').value = today;
-            document.getElementById('date-to').value = today;
+            // 預設顯示所有紀錄（不設定日期範圍）
+            document.getElementById('date-from').value = '';
+            document.getElementById('date-to').value = '';
             loadLogs();
         });
 

@@ -282,35 +282,54 @@ class APIRoutes:
                                 
                                 # 解析日誌行
                                 try:
-                                    parts = line.split(' [', 2)
-                                    if len(parts) >= 3:
-                                        timestamp = parts[0]
-                                        level = parts[1].rstrip(']')
-                                        message = parts[2]
-                                        
-                                        # 類型過濾
-                                        if log_type != 'all' and level.lower() != log_type.lower():
+                                    # 嘗試多種解析方式
+                                    if ' [' in line and '] ' in line:
+                                        parts = line.split(' [', 2)
+                                        if len(parts) >= 3:
+                                            timestamp = parts[0]
+                                            level = parts[1].rstrip(']')
+                                            message = parts[2]
+                                        else:
                                             continue
-                                        
-                                        # IP過濾
-                                        if ip_filter and ip_filter not in message:
+                                    elif '] ' in line:
+                                        # 備用解析方式
+                                        bracket_pos = line.find('] ')
+                                        if bracket_pos > 0:
+                                            timestamp_level = line[:bracket_pos]
+                                            message = line[bracket_pos + 2:]
+                                            if ' [' in timestamp_level:
+                                                timestamp, level = timestamp_level.split(' [', 1)
+                                                level = level.rstrip(']')
+                                            else:
+                                                continue
+                                        else:
                                             continue
-                                        
-                                        logs.append({
-                                            'timestamp': timestamp,
-                                            'type': level,
-                                            'content': message
-                                        })
-                                        
-                                        # 統計
-                                        stats['total_requests'] += 1
-                                        if 'USER_ACTION' in message:
-                                            stats['user_actions'] += 1
-                                        elif 'INCIDENT' in message or '案件' in message:
-                                            stats['incidents'] += 1
-                                        elif 'TEST' in message or '測試' in message:
-                                            stats['tests'] += 1
-                                        
+                                    else:
+                                        continue
+                                    
+                                    # 類型過濾
+                                    if log_type != 'all' and level.lower() != log_type.lower():
+                                        continue
+                                    
+                                    # IP過濾
+                                    if ip_filter and ip_filter not in message:
+                                        continue
+                                    
+                                    logs.append({
+                                        'timestamp': timestamp,
+                                        'type': level,
+                                        'content': message
+                                    })
+                                    
+                                    # 統計
+                                    stats['total_requests'] += 1
+                                    if 'USER_ACTION' in message or 'User Action' in message:
+                                        stats['user_actions'] += 1
+                                    elif 'INCIDENT' in message or '案件' in message:
+                                        stats['incidents'] += 1
+                                    elif 'TEST' in message or '測試' in message:
+                                        stats['tests'] += 1
+                                    
                                 except Exception as e:
                                     continue
                         

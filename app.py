@@ -181,7 +181,12 @@ def show_07_check():
     
     # 獲取地點名稱
     locat_table_session = session.get('locat_table', locat_table)
-    location_name = locat_table_session.get(int(location_id), 'Unknown')
+    try:
+        location_id_int = int(location_id)
+        location_name = locat_table_session.get(location_id_int, 'Unknown')
+    except (ValueError, TypeError):
+        # 如果轉換失敗，嘗試直接使用字串
+        location_name = locat_table_session.get(location_id, 'Unknown')
     
     return render_template("Inform/07_check.html", 
                           event=event_name,
@@ -224,29 +229,32 @@ def process_03_location():
     # 接收手動輸入值
     custom_location = request.form.get("customLocation")
 
+    # 獲取或創建 locat_table
+    locat_table_session = session.get('locat_table', locat_table.copy())
+    
     if selected_button != 0:
         session["locat"] = str(selected_button)
-        location_name = locat_table.get(selected_button, "Unknown")
+        location_name = locat_table_session.get(selected_button, "Unknown")
         logger_manager.log_user_action("選擇案件地點", f"地點: {location_name}({selected_button})")
     else:
         session["locat"] = "99"
-        locat_table.update({99: custom_location})
+        locat_table_session.update({99: custom_location})
         logger_manager.log_user_action("自訂案件地點", f"自訂地點: {custom_location}")
 
-    session["locat_table"] = locat_table
+    session["locat_table"] = locat_table_session
     return redirect("/Inform/Read_05_Room")
 
 
 @app.route("/Inform/Read_05_Room", methods=["POST"])
 def process_05_room():
-    """處理房間選擇"""
+    """處理房號選擇"""
     room = request.form.get("room")
     if len(room) == 1:
         room = room + " 樓"
     session["room"] = room
     
     # 記錄房間/位置輸入
-    logger_manager.log_user_action("輸入房間位置", f"房間: {room}")
+    logger_manager.log_user_action("輸入房號位置", f"房號: {room}")
     
     return redirect("/Inform/Read_06_Content")
 

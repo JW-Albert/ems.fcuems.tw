@@ -173,11 +173,28 @@ class LoggerManager:
         if not os.path.exists(file_path):
             return []
         
-        with open(file_path, 'r', encoding='utf-8') as f:
-            if lines:
-                return f.readlines()[-lines:]
-            else:
-                return f.readlines()
+        # 嘗試不同編碼讀取檔案
+        encodings = ['utf-8', 'utf-8-sig', 'cp1252', 'latin-1', 'big5', 'gbk']
+        
+        for encoding in encodings:
+            try:
+                with open(file_path, 'r', encoding=encoding) as f:
+                    if lines:
+                        return f.readlines()[-lines:]
+                    else:
+                        return f.readlines()
+            except UnicodeDecodeError:
+                continue
+        
+        # 如果所有編碼都失敗，使用錯誤處理
+        try:
+            with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+                if lines:
+                    return f.readlines()[-lines:]
+                else:
+                    return f.readlines()
+        except Exception:
+            return []
     
     def clear_log_files(self, date_from=None, date_to=None):
         """清除日誌檔案"""
