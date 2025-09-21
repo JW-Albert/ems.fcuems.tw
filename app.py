@@ -10,6 +10,9 @@ import pandas as pd
 import logging
 from dhooks import Webhook
 import os
+import requests
+import threading
+import time
 
 app = Flask(__name__, static_folder="static", static_url_path="/")
 app.secret_key = "secret_key"
@@ -169,11 +172,69 @@ def broadcast_message(group_id, message):
 
 # Discord Webhook
 discord_info = open_csv("data/discord_hook")
-hook = Webhook(discord_info["Webhook"][0])
+webhook_url = discord_info["Webhook"][0]
+hook = Webhook(webhook_url)
 
 
 def discord_send(message):
-    hook.send(message)
+    """發送 Discord 訊息並返回訊息 ID"""
+    try:
+        # 使用 requests 直接呼叫 Discord Webhook API 來獲取訊息 ID
+        # 添加 wait=true 參數來獲取訊息 ID
+        payload = {"content": message}
+        response = requests.post(f"{webhook_url}?wait=true", json=payload)
+        
+        if response.status_code == 200:  # 使用 wait=true 時，成功回應是 200
+            # 從回應中獲取訊息 ID
+            message_data = response.json()
+            message_id = message_data.get('id')
+            logging.info(f"Discord message sent successfully, ID: {message_id}")
+            return message_id
+        else:
+            logging.error(f"Failed to send Discord message: {response.status_code} - {response.text}")
+            return None
+            
+    except Exception as e:
+        logging.error(f"Error sending Discord message: {e}")
+        return None
+
+
+def discord_edit_message(message_id, new_content):
+    """使用 Discord Webhook 編輯訊息"""
+    try:
+        # 使用 Discord Webhook API 編輯訊息
+        # 格式：https://discord.com/api/webhooks/{webhook_id}/{webhook_token}/messages/{message_id}
+        edit_url = f"{webhook_url}/messages/{message_id}"
+        payload = {"content": new_content}
+        response = requests.patch(edit_url, json=payload)
+        
+        if response.status_code == 200:
+            logging.info(f"Successfully edited Discord message {message_id}")
+            return True
+        else:
+            logging.error(f"Failed to edit Discord message {message_id}: {response.status_code} - {response.text}")
+            return False
+            
+    except Exception as e:
+        logging.error(f"Error editing Discord message {message_id}: {e}")
+        return False
+
+
+def schedule_discord_edit(message_id, original_message, delay_hours=1):
+    """安排定時編輯 Discord 訊息"""
+    def edit_after_delay():
+        # 只移除事件回覆連結，保留 @everyone
+        new_content = original_message.replace("\n# [事件回覆](https://forms.gle/dww4orwk2RHSbVV2A)", "")
+        success = discord_edit_message(message_id, new_content)
+        if success:
+            logging.info(f"Successfully removed reply link from message {message_id}")
+        else:
+            logging.error(f"Failed to remove reply link from message {message_id}")
+    
+    # 設定定時任務，1小時後執行
+    timer = threading.Timer(delay_hours * 3600, edit_after_delay)
+    timer.start()
+    logging.info(f"Scheduled Discord message edit for message {message_id} in {delay_hours} hour(s)")
 
 
 # 主程式設定
@@ -321,7 +382,9 @@ def Inform_09_Sending():
     )
 
     if discord == 1:
-        discord_send(session["message"] + "\n@everyone")
+        message_id = discord_send(session["message"] + "\n@everyone\n# [事件回覆](https://forms.gle/dww4orwk2RHSbVV2A)")
+        if message_id:
+            schedule_discord_edit(message_id, session["message"] + "\n@everyone\n# [事件回覆](https://forms.gle/dww4orwk2RHSbVV2A)")
     if mail == 1:
         send_mail("EMT")
     if line == 1:
