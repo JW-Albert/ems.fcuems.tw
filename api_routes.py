@@ -201,7 +201,10 @@ class APIRoutes:
                         if content:
                             # 解析案件資訊
                             case_info = case_manager.parse_case_record(content)
-                            case_info.update(case_file)
+                            # 添加檔案資訊，但不覆蓋已解析的內容
+                            for key, value in case_file.items():
+                                if key not in case_info or case_info[key] is None:
+                                    case_info[key] = value
                             
                             # 統計
                             stats['total_cases'] += 1
@@ -497,11 +500,7 @@ class APIRoutes:
                             f.write(content)
                             f.write("\n" + "="*50 + "\n\n")
                 
-                return jsonify({
-                    "success": True,
-                    "message": f"案件紀錄已匯出到 {export_filename}",
-                    "filename": export_filename
-                })
+                return send_file(export_path, as_attachment=True, download_name=export_filename)
                 
             except Exception as e:
                 logger_manager.log_error(f"Export records failed: {e}")

@@ -120,9 +120,15 @@ def view_record(filename):
     logger_manager.log_user_action("查看案件紀錄", f"檔案: {filename}")
     content = case_manager.read_case_file(filename)
     if content:
-        return content
+        return jsonify({
+            "success": True,
+            "content": content
+        })
     else:
-        return "案件紀錄不存在", 404
+        return jsonify({
+            "success": False,
+            "error": "案件紀錄不存在"
+        }), 404
 
 @app.route("/system/records/download/<filename>")
 def download_record(filename):
