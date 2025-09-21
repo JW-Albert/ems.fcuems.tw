@@ -23,6 +23,10 @@ class LoggerManager:
     
     def setup_logging(self):
         """設定日誌系統"""
+        # 確保日誌目錄存在
+        if not os.path.exists("logs"):
+            os.makedirs("logs")
+        
         current_date = datetime.datetime.now().strftime("%Y%m%d")
         log_filename = self.get_log_filename(current_date)
         

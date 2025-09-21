@@ -248,10 +248,10 @@ class APIRoutes:
                 
                 logs = []
                 stats = {
-                    'total_logs': 0,
-                    'info_logs': 0,
-                    'error_logs': 0,
-                    'warning_logs': 0
+                    'total_requests': 0,
+                    'user_actions': 0,
+                    'incidents': 0,
+                    'tests': 0
                 }
                 
                 # 如果沒有指定日期範圍，預設為今天
@@ -298,18 +298,18 @@ class APIRoutes:
                                         
                                         logs.append({
                                             'timestamp': timestamp,
-                                            'level': level,
-                                            'message': message
+                                            'type': level,
+                                            'content': message
                                         })
                                         
                                         # 統計
-                                        stats['total_logs'] += 1
-                                        if level.lower() == 'info':
-                                            stats['info_logs'] += 1
-                                        elif level.lower() == 'error':
-                                            stats['error_logs'] += 1
-                                        elif level.lower() == 'warning':
-                                            stats['warning_logs'] += 1
+                                        stats['total_requests'] += 1
+                                        if 'USER_ACTION' in message:
+                                            stats['user_actions'] += 1
+                                        elif 'INCIDENT' in message or '案件' in message:
+                                            stats['incidents'] += 1
+                                        elif 'TEST' in message or '測試' in message:
+                                            stats['tests'] += 1
                                         
                                 except Exception as e:
                                     continue

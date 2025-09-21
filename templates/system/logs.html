@@ -386,6 +386,7 @@
         }
 
         function getLogClass(type) {
+            if (!type) return '';
             if (type.includes('REQUEST')) return 'request';
             if (type.includes('RESPONSE')) return 'response';
             if (type.includes('USER_ACTION')) return 'user-action';
