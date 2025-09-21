@@ -221,6 +221,10 @@ class LoggerManager:
                     os.remove(file_path)
                     cleared_files.append(filename)
         
+        # 如果清除了檔案，重新初始化logging系統
+        if cleared_files:
+            self.setup_logging()
+        
         return cleared_files
 
 # 全域日誌管理器實例
