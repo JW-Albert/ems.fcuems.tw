@@ -138,6 +138,9 @@ def show_02_event():
     session["content"] = ""
     session["message"] = "NULL"
     
+    # 初始化地點表（複製預設表）
+    session["locat_table"] = locat_table.copy()
+    
     logger_manager.log_user_action("訪問主頁面（案件分類）")
     return render_template("Inform/02_event.html")
 
@@ -179,8 +182,8 @@ def show_07_check():
     # 獲取案件分類名稱
     event_name = event_table.get(event_type, 'Unknown')
     
-    # 獲取地點名稱
-    locat_table_session = session.get('locat_table', locat_table)
+    # 獲取地點名稱（使用已初始化的地點表）
+    locat_table_session = session.get('locat_table', {})
     try:
         location_id_int = int(location_id)
         location_name = locat_table_session.get(location_id_int, 'Unknown')
@@ -229,19 +232,21 @@ def process_03_location():
     # 接收手動輸入值
     custom_location = request.form.get("customLocation")
 
-    # 獲取或創建 locat_table
+    # 獲取地點表（應該已經在主頁面初始化）
     locat_table_session = session.get('locat_table', locat_table.copy())
     
     if selected_button != 0:
+        # 預設地點
         session["locat"] = str(selected_button)
         location_name = locat_table_session.get(selected_button, "Unknown")
         logger_manager.log_user_action("選擇案件地點", f"地點: {location_name}({selected_button})")
     else:
-        # 自訂地點使用ID 99
+        # 自訂地點：新增到地點表
         session["locat"] = "99"
-        locat_table_session.update({99: custom_location})
+        locat_table_session[99] = custom_location
         logger_manager.log_user_action("自訂案件地點", f"自訂地點: {custom_location}")
 
+    # 更新session中的地點表
     session["locat_table"] = locat_table_session
     return redirect("/Inform/Read_05_Room")
 
