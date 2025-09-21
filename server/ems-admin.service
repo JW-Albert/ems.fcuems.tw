@@ -1,0 +1,16 @@
+[Unit]
+Description=EMS Admin Interface - Emergency Management System Admin Website
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/ems/web
+Environment=PATH=/var/www/ems/venv/bin
+ExecStart=/var/www/ems/venv/bin/python admin_app.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

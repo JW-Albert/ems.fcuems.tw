@@ -353,79 +353,8 @@ def show_09_sending():
 
     return redirect("/Inform/Read_10_Sended")
 
-# 系統測試路由
-@app.route("/system/test")
-def system_test():
-    """系統測試頁面"""
-    logger_manager.log_user_action("訪問系統測試頁面")
-    return render_template("system/test.html")
-
-@app.route("/system/test/line", methods=["POST"])
-def test_line():
-    """測試LINE Bot"""
-    logger_manager.log_user_action("測試LINE Bot")
-    result = message_broadcaster.test_line_message()
-    
-    if result["success"]:
-        logger_manager.log_user_action("LINE Bot測試成功")
-    else:
-        logger_manager.log_user_action("LINE Bot測試失敗", result["error"])
-    
-    return jsonify(result)
-
-@app.route("/system/test/discord", methods=["POST"])
-def test_discord():
-    """測試Discord Webhook"""
-    logger_manager.log_user_action("測試Discord Webhook")
-    result = message_broadcaster.test_discord_message()
-    
-    if result["success"]:
-        logger_manager.log_user_action("Discord Webhook測試成功")
-    else:
-        logger_manager.log_user_action("Discord Webhook測試失敗", result["error"])
-    
-    return jsonify(result)
-
-# 日誌管理路由
-@app.route("/system/logs")
-def system_logs():
-    """日誌管理頁面"""
-    logger_manager.log_user_action("訪問日誌管理頁面")
-    return render_template("system/logs.html")
-
-@app.route("/system/logs/files")
-def get_log_files():
-    """獲取日誌檔案列表"""
-    logger_manager.log_user_action("獲取日誌檔案列表")
-    log_files = logger_manager.get_log_files()
-    return jsonify({"success": True, "files": log_files})
-
-# 案件紀錄管理路由
-@app.route("/system/records")
-def system_records():
-    """案件紀錄管理頁面"""
-    logger_manager.log_user_action("訪問案件紀錄管理頁面")
-    return render_template("system/records.html")
-
-@app.route("/system/records/view/<filename>")
-def view_record(filename):
-    """查看案件紀錄"""
-    logger_manager.log_user_action("查看案件紀錄", f"檔案: {filename}")
-    content = case_manager.read_case_file(filename)
-    if content:
-        return content
-    else:
-        return "案件紀錄不存在", 404
-
-@app.route("/system/records/download/<filename>")
-def download_record(filename):
-    """下載案件紀錄"""
-    logger_manager.log_user_action("下載案件紀錄", f"檔案: {filename}")
-    file_path = os.path.join("record", filename)
-    if os.path.exists(file_path):
-        return send_file(file_path, as_attachment=True)
-    else:
-        return "檔案不存在", 404
+# 注意：系統管理功能已移至獨立的管理網站 (admin_app.py)
+# 管理網站運行在端口 5001，提供日誌管理、案件紀錄管理和系統測試功能
 
 # LINE Bot Webhook
 @app.route("/callback", methods=["POST"])

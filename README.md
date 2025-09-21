@@ -39,10 +39,32 @@ Please refer to [Collaboration Guidelines](COLLABORATION_GUIDELINES.md) for subm
 - **伺服器環境 / Server Environment**: Debian 10
 - **其他 / Others**: LINE Bot API 用於訊息廣播功能 / LINE Bot API for message broadcasting functionality
 
+## 系統架構 / System Architecture
+
+本系統採用**雙網站架構**，將主要功能和管理功能分離，提高安全性：
+
+This system adopts a **dual-website architecture**, separating main functionality from administrative functions for enhanced security:
+
+### 主網站 (Main Website) - 端口 5000
+- **用途 / Purpose**: 緊急事件通報的主要介面 / Main interface for emergency incident reporting
+- **檔案 / File**: `app.py`
+- **功能 / Features**: 案件填報、LINE Bot 回調處理 / Case reporting, LINE Bot callback handling
+
+### 管理網站 (Admin Website) - 端口 5001
+- **用途 / Purpose**: 系統管理介面 / System administration interface
+- **檔案 / File**: `admin_app.py`
+- **功能 / Features**: 日誌管理、案件紀錄管理、系統測試 / Log management, case records management, system testing
+
 ## 系統結構 / System Structure
 
 ```plaintext
-app.py                     - 主程式檔案 / Main application file
+app.py                     - 主程式檔案 / Main application file (端口 5000)
+admin_app.py               - 管理網站檔案 / Admin website file (端口 5001)
+config.py                  - 配置管理模組 / Configuration management module
+logger.py                  - 日誌管理模組 / Logging management module
+case_manager.py            - 案件管理模組 / Case management module
+message_broadcaster.py     - 訊息廣播模組 / Message broadcasting module
+api_routes.py             - API路由模組 / API routes module
 data/
     ├── .env              - 環境變數配置檔案 / Environment variables configuration file
 templates/
@@ -60,14 +82,22 @@ templates/
     │   ├── README.html    - 網站資訊頁 / Website information page
     │   ├── 著作權宣告.html - 版權宣告 / Copyright statement
     │   └── 隱私權保護政策.html - 隱私權政策 / Privacy policy
+    ├── admin/             - 管理網站頁面模板 / Admin website page templates
+    │   └── home.html     - 管理首頁 / Admin homepage
     └── system/            - 系統管理頁面模板 / System management page templates
         ├── test.html     - 系統測試頁面 / System test page
         ├── logs.html     - 日誌管理頁面 / Log management page
         └── records.html  - 案件紀錄管理頁面 / Case records management page
 server/
-    ├── boot.sh           - 伺服器啟動腳本 / Server boot script
-    ├── setup.sh          - 系統安裝腳本 / System installation script
-    └── ems-flask.service - systemd 服務檔案 / systemd service file
+    ├── boot.sh           - 主網站啟動腳本 / Main website startup script
+    ├── setup.sh          - 統一安裝腳本 / Unified installation script
+    ├── setup_all.sh      - 完整安裝腳本 / Complete installation script
+    ├── admin_setup.sh    - 管理網站安裝腳本 / Admin website installation script (備用)
+    ├── ems-flask.service - 主網站 systemd 服務檔案 / Main website systemd service file
+    └── ems-admin.service - 管理網站 systemd 服務檔案 / Admin website systemd service file
+logs/                     - 日誌檔案目錄 / Log files directory
+record/                   - 案件紀錄檔案目錄 / Case record files directory
+requirements.txt          - Python 套件依賴 / Python package dependencies
 ```
 
 ## 安裝與執行 / Installation and Execution
@@ -85,16 +115,58 @@ server/
 
 ### 執行方式 / Execution Methods
 
-1. 開發環境執行 / Development environment execution:
+#### 開發環境執行 / Development Environment Execution
+
+1. **主網站 / Main Website**:
    ```bash
    python app.py
    ```
-2. 生產環境部署 / Production environment deployment:
+   訪問 `http://127.0.0.1:5000` / Visit `http://127.0.0.1:5000`
+
+2. **管理網站 / Admin Website**:
    ```bash
-   # 使用提供的安裝腳本 / Use the provided installation script
-   ./server/setup.sh
+   python admin_app.py
    ```
-3. 開啟瀏覽器，訪問 `http://127.0.0.1:5000` 進入系統主頁 / Open browser and visit `http://127.0.0.1:5000` to access the system homepage.
+   訪問 `http://127.0.0.1:5001` / Visit `http://127.0.0.1:5001`
+
+#### 生產環境部署 / Production Environment Deployment
+
+**統一安裝腳本 / Unified Installation Script**:
+```bash
+# 安裝全部服務 / Install all services (default)
+./server/setup.sh
+
+# 只安裝主網站 / Install main website only
+./server/setup.sh main
+
+# 只安裝管理網站 / Install admin website only
+./server/setup.sh admin
+
+# 安裝全部服務 / Install all services (explicit)
+./server/setup.sh all
+```
+
+**個別安裝腳本 / Individual Installation Scripts** (備用選項):
+```bash
+# 主網站安裝 / Main website installation
+./server/setup.sh main
+
+# 管理網站安裝 / Admin website installation  
+./server/setup.sh admin
+```
+
+3. **服務管理 / Service Management**:
+   ```bash
+   # 主網站服務 / Main website service
+   systemctl start ems-flask    # 啟動 / Start
+   systemctl stop ems-flask     # 停止 / Stop
+   systemctl restart ems-flask  # 重啟 / Restart
+   
+   # 管理網站服務 / Admin website service
+   systemctl start ems-admin    # 啟動 / Start
+   systemctl stop ems-admin     # 停止 / Stop
+   systemctl restart ems-admin  # 重啟 / Restart
+   ```
 
 ### 系統測試 / System Testing
 
@@ -102,10 +174,11 @@ server/
 
 The system provides quick testing functionality to ensure LINE Bot and Discord Webhook are working properly:
 
-1. 訪問測試頁面 / Access test page: `http://127.0.0.1:5000/system/test`
-2. 點擊「測試 LINE Bot」按鈕測試 LINE 群組訊息 / Click "Test LINE Bot" button to test LINE group message
-3. 點擊「測試 Discord」按鈕測試 Discord 頻道訊息 / Click "Test Discord" button to test Discord channel message
-4. 查看測試結果和狀態訊息 / Check test results and status messages
+1. 訪問管理網站 / Access admin website: `http://127.0.0.1:5000`
+2. 點擊「系統測試」卡片 / Click "System Test" card
+3. 點擊「測試 LINE Bot」按鈕測試 LINE 群組訊息 / Click "Test LINE Bot" button to test LINE group message
+4. 點擊「測試 Discord」按鈕測試 Discord 頻道訊息 / Click "Test Discord" button to test Discord channel message
+5. 查看測試結果和狀態訊息 / Check test results and status messages
 
 ### 日誌管理 / Log Management
 
@@ -113,11 +186,12 @@ The system provides quick testing functionality to ensure LINE Bot and Discord W
 
 The system provides comprehensive log management functionality, recording all user actions and system events:
 
-1. 訪問日誌頁面 / Access log page: `http://127.0.0.1:5000/system/logs`
-2. 查看即時統計資料 / View real-time statistics
-3. 過濾和搜尋日誌 / Filter and search logs
-4. 匯出日誌檔案 / Export log files
-5. 清除舊日誌 / Clear old logs
+1. 訪問管理網站 / Access admin website: `http://127.0.0.1:5000`
+2. 點擊「日誌管理」卡片 / Click "Log Management" card
+3. 查看即時統計資料 / View real-time statistics
+4. 過濾和搜尋日誌 / Filter and search logs
+5. 匯出日誌檔案 / Export log files
+6. 清除舊日誌 / Clear old logs
 
 **記錄內容包括 / Logged content includes:**
 - 使用者 IP 地址和地理位置 / User IP address and geographic location
@@ -138,11 +212,12 @@ The system provides comprehensive log management functionality, recording all us
 
 The system provides comprehensive case record management functionality, with each case automatically saved as an individual file:
 
-1. 訪問案件紀錄頁面 / Access case records page: `http://127.0.0.1:5000/system/records`
-2. 查看案件統計資料 / View case statistics
-3. 按案件類型、日期範圍過濾 / Filter by case type and date range
-4. 查看案件詳情和下載個別檔案 / View case details and download individual files
-5. 匯出和清除案件紀錄 / Export and clear case records
+1. 訪問管理網站 / Access admin website: `http://127.0.0.1:5001`
+2. 點擊「案件紀錄」卡片 / Click "Case Records" card
+3. 查看案件統計資料 / View case statistics
+4. 按案件類型、日期範圍過濾 / Filter by case type and date range
+5. 查看案件詳情和下載個別檔案 / View case details and download individual files
+6. 匯出和清除案件紀錄 / Export and clear case records
 
 **案件紀錄內容包括 / Case record content includes:**
 - 案件基本資訊（類型、地點、位置、補充資訊）/ Basic case information (type, location, position, additional info)

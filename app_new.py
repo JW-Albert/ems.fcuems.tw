@@ -138,6 +138,9 @@ def show_02_event():
     session["content"] = ""
     session["message"] = "NULL"
     
+    # 初始化地點表（複製預設表）
+    session["locat_table"] = locat_table
+    
     logger_manager.log_user_action("訪問主頁面（案件分類）")
     return render_template("Inform/02_event.html")
 
@@ -169,7 +172,29 @@ def show_06_content():
 def show_07_check():
     """案件確認頁面"""
     logger_manager.log_user_action("訪問案件確認頁面")
-    return render_template("Inform/07_check.html")
+    
+    # 準備案件資料
+    event_type = session.get('event', 0)
+    location_id = session.get('locat', '0')
+    room = session.get('room', 'NULL')
+    content = session.get('content', '')
+    
+    # 獲取案件分類名稱
+    event_name = event_table.get(event_type, 'Unknown')
+    
+    # 獲取地點名稱
+    try:
+        location_id_int = int(location_id)
+        location_name = session["locat_table"].get(session["locat"], 'Unknown')
+    except (ValueError, TypeError):
+        # 如果轉換失敗，可能是自訂地點（ID為99）或其他特殊情況
+        location_name = session["locat_table"].get(location_id, 'Unknown')
+    
+    return render_template("Inform/07_check.html", 
+                          event=event_name,
+                          locat=location_name,
+                          room=room,
+                          content=content)
 
 @app.route("/Inform/Read_08_Sending")
 def show_08_sending():
@@ -205,30 +230,31 @@ def process_03_location():
 
     # 接收手動輸入值
     custom_location = request.form.get("customLocation")
-
+    
     if selected_button != 0:
+        # 預設地點
         session["locat"] = str(selected_button)
-        location_name = locat_table.get(selected_button, "Unknown")
+        location_name = session["locat_table"].get(session["locat"], "Unknown")
         logger_manager.log_user_action("選擇案件地點", f"地點: {location_name}({selected_button})")
     else:
+        # 自訂地點：新增到地點表
         session["locat"] = "99"
-        locat_table.update({99: custom_location})
+        session["locat_table"].update({99: custom_location})
         logger_manager.log_user_action("自訂案件地點", f"自訂地點: {custom_location}")
 
-    session["locat_table"] = locat_table
     return redirect("/Inform/Read_05_Room")
 
 
 @app.route("/Inform/Read_05_Room", methods=["POST"])
 def process_05_room():
-    """處理房間選擇"""
+    """處理房號選擇"""
     room = request.form.get("room")
     if len(room) == 1:
         room = room + " 樓"
     session["room"] = room
     
     # 記錄房間/位置輸入
-    logger_manager.log_user_action("輸入房間位置", f"房間: {room}")
+    logger_manager.log_user_action("輸入房號位置", f"房號: {room}")
     
     return redirect("/Inform/Read_06_Content")
 
@@ -446,8 +472,5 @@ def internal_error(error):
     return render_template("Information/500.html"), 500
 
 if __name__ == "__main__":
-    # 設定日誌
-    logger_manager.setup_logging()
-    
     # 啟動應用程式
     app.run(host="0.0.0.0", port=5000, debug=True)

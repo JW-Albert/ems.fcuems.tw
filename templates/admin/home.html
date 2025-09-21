@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>緊急事件通報系統 - 管理介面 / Emergency Management System - Admin Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header .icon {
+            font-size: 1.2em;
+            color: #667eea;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+
+        .admin-badge {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 30px;
+        }
+
+        .management-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .management-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .management-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+
+        .management-card .icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .management-card h3 {
+            color: #333;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .management-card p {
+            color: #666;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+
+        .system-info {
+            background: #e8f4fd;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .system-info h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .system-info p {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .back-link {
+            margin-top: 30px;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .back-link a:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .management-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <span class="icon">🛡️</span>
+                緊急事件通報系統
+                <span class="icon">📊</span>
+            </h1>
+            <h2 style="color: #333; font-size: 1.8em; margin-bottom: 10px;">
+                Emergency Management System
+            </h2>
+            <p>管理介面 / Admin Interface</p>
+            <div class="admin-badge">🔐 管理員專用 / Administrator Only</div>
+        </div>
+
+        <div class="management-grid">
+            <div class="management-card" onclick="window.location.href='/system/test'">
+                <div class="icon">🧪</div>
+                <h3>系統測試 / System Test</h3>
+                <p>測試LINE Bot和Discord Webhook功能<br>Test LINE Bot and Discord Webhook functionality</p>
+            </div>
+
+            <div class="management-card" onclick="window.location.href='/system/logs'">
+                <div class="icon">📋</div>
+                <h3>日誌管理 / Log Management</h3>
+                <p>查看、匯出和清除系統日誌<br>View, export and clear system logs</p>
+            </div>
+
+            <div class="management-card" onclick="window.location.href='/system/records'">
+                <div class="icon">📁</div>
+                <h3>案件紀錄 / Case Records</h3>
+                <p>管理緊急事件通報紀錄<br>Manage emergency incident reports</p>
+            </div>
+        </div>
+
+        <div class="system-info">
+            <h4>🔧 系統資訊 / System Information</h4>
+            <p><strong>管理網站端口 / Admin Port:</strong> 5001</p>
+            <p><strong>主網站端口 / Main Port:</strong> 5000</p>
+            <p><strong>服務狀態 / Service Status:</strong> 運行中 / Running</p>
+            <p><strong>最後更新 / Last Updated:</strong> <span id="lastUpdate"></span></p>
+        </div>
+
+        <div class="back-link">
+            <a href="http://localhost:5000" target="_blank">🌐 前往主網站 / Go to Main Site</a>
+        </div>
+    </div>
+
+    <script>
+        // 更新最後更新時間
+        document.getElementById('lastUpdate').textContent = new Date().toLocaleString('zh-TW');
+
+        // 添加點擊效果
+        document.querySelectorAll('.management-card').forEach(card => {
+            card.addEventListener('click', function () {
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
+        });
+    </script>
+</body>
+
+</html>
