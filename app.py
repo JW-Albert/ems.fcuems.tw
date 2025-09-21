@@ -42,8 +42,8 @@ except ValueError as e:
     exit(1)
 
 # 廣播寄送控制
-line = 0
-discord = 0
+line = 1
+discord = 1
 
 # 案件分類和地點對照表
 event_table = {1: "OHCA", 2: "內科", 3: "外科"}
