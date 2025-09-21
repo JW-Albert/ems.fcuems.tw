@@ -6,7 +6,7 @@ set -e
 echo "Booting server..."
 ./boot.sh
 
-cd /var/www/ems/server
+cd /var/www/ems/web/server
 
 echo "Copying ems-flask.service..."
 cp ems-flask.service /etc/systemd/system/
