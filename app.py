@@ -330,12 +330,6 @@ def show_03_location():
     logger_manager.log_user_action("訪問案件地點頁面")
     return render_template("Inform/03_location.html")
 
-@app.route("/Inform/Read_04_Floor")
-def read_04_floor():
-    """樓層選擇頁面"""
-    logger_manager.log_user_action("訪問樓層選擇頁面")
-    return render_template("Inform/04_floor.html")
-
 @app.route("/Inform/Read_05_Room")
 def show_05_room():
     """房間選擇頁面"""
@@ -410,7 +404,7 @@ def process_03_location():
 
     # 接收手動輸入值
     custom_location = request.form.get("customLocation")
-    
+
     if selected_button != 0:
         # 預設地點
         session["locat"] = str(selected_button)
@@ -432,10 +426,10 @@ def process_05_room():
     if len(room) == 1:
         room = room + " 樓"
     session["room"] = room
-    
+
     # 記錄房間/位置輸入
     logger_manager.log_user_action("輸入房號位置", f"房號: {room}")
-    
+
     return redirect("/Inform/Read_06_Content")
 
 @app.route("/Inform/Read_06_Content", methods=["POST"])
@@ -472,7 +466,7 @@ def show_09_sending():
     session["message"] = (
         "緊急事件通報\n"
         f"案件分類： {event_table[session['event']]}\n"
-        f"案件地點： {session['locat_table'][session['locat']]}\n"
+        f"案件地點： {session['locat_table'].get(session['locat'], 'Unknown')}\n"
         f"案件位置： {session['room']}\n"
         f"案件補充：\n\t{content_with_tabs}\n"
         f"通報時間： {Time()}"
@@ -481,7 +475,7 @@ def show_09_sending():
     # 記錄事件通報
     logger_manager.log_user_action("提交案件通報", 
         f"Event={event_table[session['event']]} | "
-        f"Location={session['locat_table'][session['locat']]} | "
+        f"Location={session['locat_table'].get(session['locat'], 'Unknown')} | "
         f"Room={session['room']} | "
         f"ContentLength={len(session['content'])}"
     )
@@ -490,7 +484,7 @@ def show_09_sending():
     discord_success = False
     line_success = False
     discord_message_id = None
-    
+
     if discord == 1:
         message_id = discord_send(session["message"] + "\n@everyone\n# [事件回覆](https://forms.gle/dww4orwk2RHSbVV2A)")
         if message_id:
@@ -515,7 +509,7 @@ def show_09_sending():
     # 準備案件資料並儲存紀錄
     case_data = {
         'event_type': event_table[session['event']],
-        'location': session['locat_table'][session['locat']],
+        'location': session['locat_table'].get(session['locat'], 'Unknown'),
         'room': session['room'],
         'content': session['content'],
         'message': session["message"],
