@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=root
 Group=root
-ExecStart=/var/www/ems/venv/bin/flask run --host=0.0.0.0 --port=80
+ExecStart=/var/www/ems/venv/bin/flask run --host=0.0.0.0 --port=8000
 WorkingDirectory=/var/www/ems/web
 Environment="FLASK_APP=app.py"
 Restart=always

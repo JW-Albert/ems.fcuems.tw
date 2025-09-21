@@ -4,6 +4,7 @@ API路由模組
 """
 
 import datetime
+import os
 from flask import request, jsonify, send_file
 from case_manager import case_manager
 from logger import logger_manager

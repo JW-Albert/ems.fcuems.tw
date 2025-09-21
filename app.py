@@ -25,6 +25,11 @@ app = Flask(__name__, static_folder="static", static_url_path="/")
 app.secret_key = config.SECRET_KEY
 app.config["SESSION_TYPE"] = config.SESSION_TYPE
 
+# LINE Bot 設定
+from linebot import LineBotApi, WebhookHandler
+line_bot_api = LineBotApi(config.LINE_BOT_API_TOKEN)
+handler = WebhookHandler(config.LINE_WEBHOOK_HANDLER)
+
 # 驗證配置
 try:
     config.validate_config()
