@@ -9,6 +9,9 @@ sudo apt update -y && sudo apt upgrade -y
 echo "Installing dependencies python3 python3-pip python3-venv python3-dev..."
 sudo apt install -y python3 python3-pip python3-venv python3-dev
 
+echo "Upgrading pip setuptools wheel..."
+pip3 install --upgrade pip setuptools wheel
+
 echo "Changing directory..."
 cd /var/www/ems
 
