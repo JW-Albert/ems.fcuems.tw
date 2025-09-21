@@ -284,6 +284,71 @@ def get_logs():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route("/api/records", methods=["GET"])
+def get_records():
+    """獲取案件記錄（公開API）"""
+    try:
+        # 獲取查詢參數
+        case_type = request.args.get('type', 'all')
+        date_from = request.args.get('from', '')
+        date_to = request.args.get('to', '')
+        limit = int(request.args.get('limit', 100))
+        offset = int(request.args.get('offset', 0))
+        
+        records = []
+        stats = {
+            'total_cases': 0,
+            'ohca_cases': 0,
+            'internal_cases': 0,
+            'surgical_cases': 0
+        }
+        
+        # 獲取案件檔案
+        case_files = case_manager.get_case_files(date_from, date_to)
+        
+        for case_file in case_files:
+            # 解析案件記錄
+            case_info = case_manager.parse_case_record(case_file['content'])
+            
+            # 統計
+            stats['total_cases'] += 1
+            event_type = case_info.get('event_type', '')
+            if 'OHCA' in event_type:
+                stats['ohca_cases'] += 1
+            elif '內科' in event_type:
+                stats['internal_cases'] += 1
+            elif '外科' in event_type:
+                stats['surgical_cases'] += 1
+            
+            # 過濾案件類型
+            if case_type != 'all' and case_type not in event_type:
+                continue
+            
+            # 添加檔案資訊
+            case_info.update(case_file)
+            records.append(case_info)
+        
+        # 分頁處理
+        total_count = len(records)
+        records = records[offset:offset + limit]
+        
+        return jsonify({
+            "success": True,
+            "data": records,
+            "stats": stats,
+            "pagination": {
+                "total": total_count,
+                "limit": limit,
+                "offset": offset,
+                "count": len(records)
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
 # 注意：敏感操作（如清除、匯出）仍保留在管理網站中
 
 # 請求前處理
