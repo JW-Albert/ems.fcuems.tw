@@ -41,10 +41,62 @@ except ValueError as e:
 line = 1
 discord = 1
 
+# 案件分類和地點對照表
+event_table = {1: "OHCA", 2: "內科", 3: "外科"}
+locat_table = {
+    1: "行政大樓",
+    2: "行政二館",
+    3: "丘逢甲紀念館",
+    4: "圖書館",
+    5: "科學與航太館",
+    6: "商學大樓",
+    7: "忠勤樓",
+    8: "建築館",
+    9: "語文大樓",
+    10: "工學大樓",
+    11: "人言大樓",
+    12: "資訊電機館",
+    13: "人文社會館",
+    14: "電子通訊館",
+    15: "育樂館",
+    16: "土木水利館",
+    17: "理學大樓",
+    18: "學思樓",
+    19: "體育館",
+    20: "文創中心",
+    21: "共善樓",
+}
+
 def Time() -> str:
     """獲取當前時間字串"""
     now = datetime.datetime.now().strftime("%Y年%m月%d日 %H時%M分%S秒")
     return now
+
+def discord_send(message):
+    """發送 Discord 訊息並返回訊息 ID"""
+    try:
+        # 使用 requests 直接呼叫 Discord Webhook API 來獲取訊息 ID
+        # 添加 wait=true 參數來獲取訊息 ID
+        payload = {"content": message}
+        response = requests.post(f"{config.DISCORD_WEBHOOK_URL}?wait=true", json=payload)
+        
+        if response.status_code == 200:  # 使用 wait=true 時，成功回應是 200
+            # 從回應中獲取訊息 ID
+            message_data = response.json()
+            message_id = message_data.get('id')
+            logging.info(f"Discord message sent successfully, ID: {message_id}")
+            return message_id
+        else:
+            logging.error(f"Failed to send Discord message: {response.status_code} - {response.text}")
+            return None
+            
+    except Exception as e:
+        logging.error(f"Error sending Discord message: {e}")
+        return None
+
+def broadcast_message(group_id, message):
+    """廣播訊息到LINE群組"""
+    line_bot_api.push_message(group_id, TextSendMessage(text=message))
 
 # 註冊API路由
 api_routes = APIRoutes(app)
@@ -70,20 +122,21 @@ def after_request(response):
 
 # 主頁面路由
 @app.route("/")
-def index():
-    """主頁面"""
-    logger_manager.log_user_action("訪問主頁面")
-    return render_template("Information/README.html")
-
-# 案件通報路由
 @app.route("/Inform/Read_02_Event")
-def read_02_event():
-    """案件分類選擇頁面"""
-    logger_manager.log_user_action("訪問案件分類頁面")
+def show_02_event():
+    """案件分類選擇頁面（主頁面）"""
+    # 重置session變數
+    session["event"] = 0
+    session["locat"] = "0"
+    session["room"] = "NULL"
+    session["content"] = ""
+    session["message"] = "NULL"
+    
+    logger_manager.log_user_action("訪問主頁面（案件分類）")
     return render_template("Inform/02_event.html")
 
 @app.route("/Inform/Read_03_Location")
-def read_03_location():
+def show_03_location():
     """案件地點選擇頁面"""
     logger_manager.log_user_action("訪問案件地點頁面")
     return render_template("Inform/03_location.html")
@@ -95,31 +148,31 @@ def read_04_floor():
     return render_template("Inform/04_floor.html")
 
 @app.route("/Inform/Read_05_Room")
-def read_05_room():
+def show_05_room():
     """房間選擇頁面"""
     logger_manager.log_user_action("訪問房間選擇頁面")
     return render_template("Inform/05_room.html")
 
 @app.route("/Inform/Read_06_Content")
-def read_06_content():
+def show_06_content():
     """案件內容輸入頁面"""
     logger_manager.log_user_action("訪問案件內容頁面")
     return render_template("Inform/06_content.html")
 
 @app.route("/Inform/Read_07_Check")
-def read_07_check():
+def show_07_check():
     """案件確認頁面"""
     logger_manager.log_user_action("訪問案件確認頁面")
     return render_template("Inform/07_check.html")
 
 @app.route("/Inform/Read_08_Sending")
-def read_08_sending():
+def show_08_sending():
     """案件發送頁面"""
     logger_manager.log_user_action("訪問案件發送頁面")
     return render_template("Inform/08_sending.html")
 
 @app.route("/Inform/Read_10_Sended")
-def read_10_sended():
+def show_10_sended():
     """案件發送完成頁面"""
     logger_manager.log_user_action("訪問案件發送完成頁面")
     return render_template("Inform/10_sended.html")
@@ -128,45 +181,49 @@ def read_10_sended():
 @app.route("/Inform/Read_02_Event", methods=["POST"])
 def process_02_event():
     """處理案件分類選擇"""
-    event_type = request.form.get("event_type")
-    if not event_type:
-        return redirect("/Inform/Read_02_Event")
+    event_type = int(request.form.get("event"))
+    session["event"] = event_type
     
-    session["event_type"] = event_type
-    logger_manager.log_user_action("選擇案件分類", f"分類: {event_type}")
+    # 記錄事件類型選擇
+    event_name = event_table.get(event_type, "Unknown")
+    logger_manager.log_user_action("選擇案件分類", f"分類: {event_name}({event_type})")
+    
     return redirect("/Inform/Read_03_Location")
 
 @app.route("/Inform/Read_03_Location", methods=["POST"])
 def process_03_location():
     """處理案件地點選擇"""
-    location = request.form.get("location")
-    if not location:
-        return redirect("/Inform/Read_03_Location")
-    
-    session["location"] = location
-    logger_manager.log_user_action("選擇案件地點", f"地點: {location}")
-    return redirect("/Inform/Read_04_Floor")
+    # 接收按鈕選擇值
+    selected_button = request.form.get("selectedButtonInput")
+    selected_button = int(selected_button)
 
-@app.route("/Inform/Read_04_Floor", methods=["POST"])
-def process_04_floor():
-    """處理樓層選擇"""
-    floor = request.form.get("floor")
-    if not floor:
-        return redirect("/Inform/Read_04_Floor")
-    
-    session["floor"] = floor
-    logger_manager.log_user_action("選擇樓層", f"樓層: {floor}")
+    # 接收手動輸入值
+    custom_location = request.form.get("customLocation")
+
+    if selected_button != 0:
+        session["locat"] = str(selected_button)
+        location_name = locat_table.get(selected_button, "Unknown")
+        logger_manager.log_user_action("選擇案件地點", f"地點: {location_name}({selected_button})")
+    else:
+        session["locat"] = "99"
+        locat_table.update({99: custom_location})
+        logger_manager.log_user_action("自訂案件地點", f"自訂地點: {custom_location}")
+
+    session["locat_table"] = locat_table
     return redirect("/Inform/Read_05_Room")
+
 
 @app.route("/Inform/Read_05_Room", methods=["POST"])
 def process_05_room():
     """處理房間選擇"""
     room = request.form.get("room")
-    if not room:
-        return redirect("/Inform/Read_05_Room")
-    
+    if len(room) == 1:
+        room = room + " 樓"
     session["room"] = room
-    logger_manager.log_user_action("選擇房間", f"房間: {room}")
+    
+    # 記錄房間/位置輸入
+    logger_manager.log_user_action("輸入房間位置", f"房間: {room}")
+    
     return redirect("/Inform/Read_06_Content")
 
 @app.route("/Inform/Read_06_Content", methods=["POST"])
@@ -174,7 +231,11 @@ def process_06_content():
     """處理案件內容輸入"""
     content = request.form.get("content", "")
     session["content"] = content
-    logger_manager.log_user_action("輸入案件內容", f"內容長度: {len(content)}")
+    
+    # 記錄補充資訊輸入
+    content_length = len(content)
+    logger_manager.log_user_action("輸入案件內容", f"內容長度: {content_length}")
+    
     return redirect("/Inform/Read_07_Check")
 
 @app.route("/Inform/Read_07_Check", methods=["POST"])
@@ -190,64 +251,75 @@ def process_08_sending():
     return redirect("/Inform/Read_09_Sending")
 
 @app.route("/Inform/Read_09_Sending")
-def read_09_sending():
+def show_09_sending():
     """案件發送處理頁面"""
-    try:
-        # 獲取案件資料
-        case_data = {
-            'event_type': session.get('event_type', 'Unknown'),
-            'location': session.get('location', 'Unknown'),
-            'floor': session.get('floor', 'Unknown'),
-            'room': session.get('room', 'Unknown'),
-            'content': session.get('content', 'None')
-        }
-        
-        # 格式化訊息
-        message_content = message_broadcaster.format_case_message(case_data)
-        
-        # 廣播訊息
-        broadcast_results = message_broadcaster.broadcast_message(message_content, case_data)
-        
-        # 準備案件紀錄資料
-        user_info = logger_manager.get_user_info()
-        case_record_data = {
-            **case_data,
-            'message': message_content,
-            'ip': user_info['ip'],
-            'country': user_info['country'],
-            'city': user_info['city'],
-            'user_agent': user_info['user_agent'],
-            'discord_success': broadcast_results['discord_success'],
-            'line_success': broadcast_results['line_success'],
-            'discord_message_id': broadcast_results.get('discord_message_id')
-        }
-        
-        # 保存案件紀錄
+    # 處理內容中的換行符
+    content_with_tabs = session["content"].replace("\n", "\n\t")
+
+    # 使用多行字串組合訊息
+    session["message"] = (
+        "緊急事件通報\n"
+        f"案件分類： {event_table[session['event']]}\n"
+        f"案件地點： {session['locat_table'][session['locat']]}\n"
+        f"案件位置： {session['room']}\n"
+        f"案件補充：\n\t{content_with_tabs}\n"
+        f"通報時間： {Time()}"
+    )
+
+    # 記錄事件通報
+    logger_manager.log_user_action("提交案件通報", 
+        f"Event={event_table[session['event']]} | "
+        f"Location={session['locat_table'][session['locat']]} | "
+        f"Room={session['room']} | "
+        f"ContentLength={len(session['content'])}"
+    )
+
+    # 發送訊息並記錄結果
+    discord_success = False
+    line_success = False
+    discord_message_id = None
+    
+    if discord == 1:
+        message_id = discord_send(session["message"] + "\n@everyone\n# [事件回覆](https://forms.gle/dww4orwk2RHSbVV2A)")
+        if message_id:
+            discord_success = True
+            discord_message_id = message_id
+            logger_manager.log_user_action("Discord發送成功", f"MessageID={message_id}")
+        else:
+            logger_manager.log_user_action("Discord發送失敗", "Failed to send Discord message")
+    
+    if line == 1:
         try:
-            filename = case_manager.save_case_record(case_record_data)
-            logger_manager.log_user_action("案件紀錄已保存", f"檔案: {filename}")
+            broadcast_message(config.LINE_GROUP_ID, session["message"])
+            line_success = True
+            logger_manager.log_user_action("LINE發送成功", f"GroupID={config.LINE_GROUP_ID}")
         except Exception as e:
-            logger_manager.log_error(f"保存案件紀錄失敗: {e}")
-        
-        # 記錄發送結果
-        logger_manager.log_user_action("案件發送完成", f"LINE: {broadcast_results['line_success']}, Discord: {broadcast_results['discord_success']}")
-        
-        # 清除session
-        session.clear()
-        
-        return render_template("Inform/10_sended.html", 
-                             line_success=broadcast_results['line_success'],
-                             discord_success=broadcast_results['discord_success'],
-                             line_error=broadcast_results.get('line_error'),
-                             discord_error=broadcast_results.get('discord_error'))
-        
+            logger_manager.log_user_action("LINE發送失敗", f"Error={str(e)}")
+
+    # 記錄整體發送結果
+    logger_manager.log_user_action("案件廣播完成", 
+        f"Discord={discord_success} | LINE={line_success}")
+
+    # 準備案件資料並儲存紀錄
+    case_data = {
+        'event_type': event_table[session['event']],
+        'location': session['locat_table'][session['locat']],
+        'room': session['room'],
+        'content': session['content'],
+        'message': session["message"],
+        'discord_success': discord_success,
+        'line_success': line_success,
+        'discord_message_id': discord_message_id
+    }
+    
+    # 儲存案件紀錄
+    try:
+        filename = case_manager.save_case_record(case_data)
+        logger_manager.log_user_action("案件紀錄已保存", f"RecordFile={filename}")
     except Exception as e:
-        logger_manager.log_error(f"案件發送處理失敗: {e}")
-        return render_template("Inform/10_sended.html", 
-                             line_success=False,
-                             discord_success=False,
-                             line_error=str(e),
-                             discord_error=str(e))
+        logger_manager.log_user_action("案件紀錄保存失敗", f"Failed to save case record: {e}")
+
+    return redirect("/Inform/Read_10_Sended")
 
 # 系統測試路由
 @app.route("/system/test")
