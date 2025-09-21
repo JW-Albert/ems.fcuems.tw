@@ -34,26 +34,43 @@ class LoggerManager:
         for handler in logging.root.handlers[:]:
             logging.root.removeHandler(handler)
         
+        # 設定根日誌器
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.INFO)
+        
         # 設定檔案日誌
-        logging.basicConfig(
-            filename=log_filename,
-            level=logging.INFO,
-            format="%(asctime)s [%(levelname)s] %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
-        )
+        file_handler = logging.FileHandler(log_filename, encoding='utf-8')
+        file_handler.setLevel(logging.INFO)
+        file_formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+        file_handler.setFormatter(file_formatter)
+        root_logger.addHandler(file_handler)
         
         # 設定控制台日誌
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
-        console_formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+        console_formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
         console_handler.setFormatter(console_formatter)
-        logging.getLogger().addHandler(console_handler)
+        root_logger.addHandler(console_handler)
+        
+        # 設定 Flask 日誌器
+        flask_logger = logging.getLogger('werkzeug')
+        flask_logger.setLevel(logging.INFO)
+        flask_logger.addHandler(file_handler)
+        flask_logger.addHandler(console_handler)
     
     def get_real_ip(self):
         """獲取真實IP地址（支援Cloudflare Tunnel）"""
         # Cloudflare Tunnel 優先
         if request.headers.get('CF-Connecting-IP'):
             return request.headers.get('CF-Connecting-IP')
+        
+        # Cloudflare 其他標頭
+        if request.headers.get('CF-IPCountry'):
+            # 如果有 Cloudflare 標頭，嘗試其他方式獲取 IP
+            if request.headers.get('X-Forwarded-For'):
+                return request.headers.get('X-Forwarded-For').split(',')[0].strip()
+            if request.headers.get('X-Real-IP'):
+                return request.headers.get('X-Real-IP')
         
         # 其他代理
         if request.headers.get('X-Forwarded-For'):
@@ -74,6 +91,10 @@ class LoggerManager:
         country = request.headers.get('CF-IPCountry', 'Unknown')
         city = request.headers.get('CF-IPCity', 'Unknown')
         
+        # Cloudflare 其他資訊
+        cf_ray = request.headers.get('CF-Ray', 'Unknown')
+        cf_visitor = request.headers.get('CF-Visitor', 'Unknown')
+        
         # 來源頁面
         referer = request.headers.get('Referer', 'Direct')
         
@@ -82,7 +103,9 @@ class LoggerManager:
             'user_agent': user_agent,
             'country': country,
             'city': city,
-            'referer': referer
+            'referer': referer,
+            'cf_ray': cf_ray,
+            'cf_visitor': cf_visitor
         }
     
     def log_user_action(self, action, details=None):
@@ -106,6 +129,12 @@ class LoggerManager:
             log_message += f" | Response Time: {response_time}ms"
         
         log_message += f" | IP: {user_info['ip']} | Country: {user_info['country']} | City: {user_info['city']}"
+        
+        # 添加 Cloudflare 資訊
+        if user_info['cf_ray'] != 'Unknown':
+            log_message += f" | CF-Ray: {user_info['cf_ray']}"
+        if user_info['cf_visitor'] != 'Unknown':
+            log_message += f" | CF-Visitor: {user_info['cf_visitor']}"
         
         logging.info(log_message)
     
