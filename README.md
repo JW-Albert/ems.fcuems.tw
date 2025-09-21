@@ -23,9 +23,11 @@ Please refer to [Collaboration Guidelines](COLLABORATION_GUIDELINES.md) for subm
 
 5. **系統測試功能 / System Testing Function** - 提供 LINE Bot 和 Discord Webhook 的快速測試功能，確保通訊正常運作。Provides quick testing functionality for LINE Bot and Discord Webhook to ensure proper communication.
 
-6. **伺服器錯誤與頁面未建置提醒 / Server Error and Page Not Found Handling** - 提供自訂的 404 和 500 錯誤頁面，提升使用體驗。Provides custom 404 and 500 error pages to improve user experience.
+6. **詳細日誌記錄 / Detailed Logging System** - 完整記錄使用者動作、請求回應、地理位置資訊，支援 Cloudflare Tunnel。Comprehensive logging of user actions, request responses, and geographic information with Cloudflare Tunnel support.
 
-7. **隱私與版權聲明 / Privacy and Copyright Statements** - 系統包含隱私權保護政策與版權宣告，確保資料使用合規。The system includes privacy protection policies and copyright statements to ensure compliant data usage.
+7. **伺服器錯誤與頁面未建置提醒 / Server Error and Page Not Found Handling** - 提供自訂的 404 和 500 錯誤頁面，提升使用體驗。Provides custom 404 and 500 error pages to improve user experience.
+
+8. **隱私與版權聲明 / Privacy and Copyright Statements** - 系統包含隱私權保護政策與版權宣告，確保資料使用合規。The system includes privacy protection policies and copyright statements to ensure compliant data usage.
 
 ## 使用技術 / Technologies Used
 
@@ -57,7 +59,8 @@ templates/
     │   ├── 著作權宣告.html - 版權宣告 / Copyright statement
     │   └── 隱私權保護政策.html - 隱私權政策 / Privacy policy
     └── system/            - 系統管理頁面模板 / System management page templates
-        └── test.html     - 系統測試頁面 / System test page
+        ├── test.html     - 系統測試頁面 / System test page
+        └── logs.html     - 日誌管理頁面 / Log management page
 server/
     ├── boot.sh           - 伺服器啟動腳本 / Server boot script
     ├── setup.sh          - 系統安裝腳本 / System installation script
@@ -100,6 +103,31 @@ The system provides quick testing functionality to ensure LINE Bot and Discord W
 2. 點擊「測試 LINE Bot」按鈕測試 LINE 群組訊息 / Click "Test LINE Bot" button to test LINE group message
 3. 點擊「測試 Discord」按鈕測試 Discord 頻道訊息 / Click "Test Discord" button to test Discord channel message
 4. 查看測試結果和狀態訊息 / Check test results and status messages
+
+### 日誌管理 / Log Management
+
+系統提供完整的日誌管理功能，記錄所有使用者動作和系統事件：
+
+The system provides comprehensive log management functionality, recording all user actions and system events:
+
+1. 訪問日誌頁面 / Access log page: `http://127.0.0.1:5000/system/logs`
+2. 查看即時統計資料 / View real-time statistics
+3. 過濾和搜尋日誌 / Filter and search logs
+4. 匯出日誌檔案 / Export log files
+5. 清除舊日誌 / Clear old logs
+
+**記錄內容包括 / Logged content includes:**
+- 使用者 IP 地址和地理位置 / User IP address and geographic location
+- 所有頁面訪問和動作 / All page visits and actions
+- 事件通報詳細資訊 / Incident reporting details
+- 系統測試結果 / System test results
+- 錯誤和警告訊息 / Error and warning messages
+
+**日誌檔案管理 / Log File Management:**
+- 每天自動創建新的日誌檔案 / Automatic daily log file creation
+- 檔案命名格式：`flask_app_YYYYMMDD.log` / File naming format: `flask_app_YYYYMMDD.log`
+- 支援多天日誌查詢和匯出 / Support multi-day log query and export
+- 自動日誌輪轉，避免單一檔案過大 / Automatic log rotation to prevent oversized files
 
 ## 環境變數配置 / Environment Variables Configuration
 

@@ -45,38 +45,130 @@ group_id = os.getenv("LINE_GROUP_ID")
 if not os.path.exists("logs"):
     os.makedirs("logs")
 
-# 使用當前日期作為日誌文件名
-current_date = datetime.datetime.now().strftime("%Y%m%d")
-log_filename = f"logs/flask_app_{current_date}.log"
+# 日誌檔案管理
+def get_log_filename(date=None):
+    """獲取指定日期的日誌檔案名稱"""
+    if date is None:
+        date = datetime.datetime.now().strftime("%Y%m%d")
+    return f"logs/flask_app_{date}.log"
 
-logging.basicConfig(
-    filename=log_filename,
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-)
+def setup_logging():
+    """設定日誌系統"""
+    current_date = datetime.datetime.now().strftime("%Y%m%d")
+    log_filename = get_log_filename(current_date)
+    
+    # 清除現有的處理器
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+    
+    # 設定新的日誌配置
+    logging.basicConfig(
+        filename=log_filename,
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+    
+    # 同時輸出到控制台（開發時使用）
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+    console_handler.setFormatter(console_formatter)
+    logging.getLogger().addHandler(console_handler)
+
+# 初始化日誌系統
+setup_logging()
 
 
 def get_real_ip():
+    """獲取真實IP地址，支援Cloudflare Tunnel"""
+    # Cloudflare Tunnel 優先
     if request.headers.get("CF-Connecting-IP"):
         return request.headers["CF-Connecting-IP"]
+    # Cloudflare 代理
+    elif request.headers.get("CF-IPCountry"):
+        return request.headers.get("CF-Connecting-IP", request.remote_addr)
+    # 其他代理
     elif request.headers.get("X-Forwarded-For"):
-        return request.headers["X-Forwarded-For"].split(",")[0]
+        return request.headers["X-Forwarded-For"].split(",")[0].strip()
+    elif request.headers.get("X-Real-IP"):
+        return request.headers["X-Real-IP"]
     else:
         return request.remote_addr
 
 
+def get_user_info():
+    """獲取使用者資訊"""
+    ip = get_real_ip()
+    user_agent = request.headers.get("User-Agent", "Unknown")
+    country = request.headers.get("CF-IPCountry", "Unknown")
+    city = request.headers.get("CF-IPCity", "Unknown")
+    referer = request.headers.get("Referer", "Direct")
+    
+    return {
+        "ip": ip,
+        "user_agent": user_agent,
+        "country": country,
+        "city": city,
+        "referer": referer
+    }
+
+
+def log_user_action(action, details=None):
+    """記錄使用者動作"""
+    user_info = get_user_info()
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    log_message = (
+        f"[{timestamp}] USER_ACTION: {action} | "
+        f"IP={user_info['ip']} | "
+        f"Country={user_info['country']} | "
+        f"City={user_info['city']} | "
+        f"Path={request.path} | "
+        f"Method={request.method}"
+    )
+    
+    if details:
+        log_message += f" | Details={details}"
+    
+    logging.info(log_message)
+
+
 @app.before_request
 def log_request_info():
-    ip = get_real_ip()
-    method = request.method
-    path = request.path
-    user_agent = request.headers.get("User-Agent", "Unknown")
-    logging.info(f"Access: IP={ip} Method={method} Path={path} User-Agent={user_agent}")
+    """記錄請求資訊"""
+    user_info = get_user_info()
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # 基本請求記錄
+    logging.info(
+        f"[{timestamp}] REQUEST: {request.method} {request.path} | "
+        f"IP={user_info['ip']} | "
+        f"Country={user_info['country']} | "
+        f"City={user_info['city']} | "
+        f"User-Agent={user_info['user_agent'][:100]} | "
+        f"Referer={user_info['referer']}"
+    )
+    
+    # 記錄特殊動作
+    if request.path.startswith("/Inform/"):
+        log_user_action("ACCESS_INCIDENT_FORM", f"Page={request.path}")
+    elif request.path.startswith("/system/"):
+        log_user_action("ACCESS_SYSTEM_PAGE", f"Page={request.path}")
+    elif request.path.startswith("/Information/"):
+        log_user_action("ACCESS_INFO_PAGE", f"Page={request.path}")
 
 
 @app.after_request
 def log_response_info(response):
-    logging.info(f"Response: Status={response.status_code} Path={request.path}")
+    """記錄回應資訊"""
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    logging.info(
+        f"[{timestamp}] RESPONSE: {response.status_code} {request.path} | "
+        f"IP={get_real_ip()}"
+    )
+    
     return response
 
 
@@ -236,7 +328,13 @@ def Inform_02_Event():
 
 @app.route("/Inform/Read_02_Event", methods=["POST"])
 def Inform_Read_02_Event():
-    session["event"] = int(request.form.get("event"))
+    event_type = int(request.form.get("event"))
+    session["event"] = event_type
+    
+    # 記錄事件類型選擇
+    event_name = event_table.get(event_type, "Unknown")
+    log_user_action("SELECT_EVENT_TYPE", f"Event={event_name}({event_type})")
+    
     return redirect("/Inform/03_Location")
 
 
@@ -256,9 +354,12 @@ def Inform_Read_03_Location():
 
     if selected_button != 0:
         session["locat"] = str(selected_button)
+        location_name = locat_table.get(selected_button, "Unknown")
+        log_user_action("SELECT_LOCATION", f"Location={location_name}({selected_button})")
     else:
         session["locat"] = "99"
         locat_table.update({99: custom_location})
+        log_user_action("CUSTOM_LOCATION", f"CustomLocation={custom_location}")
 
     session["locat_table"] = locat_table
 
@@ -275,6 +376,10 @@ def Inform_Read_05_Room():
     if (len(room) == 1):
         room = room + " 樓"
     session["room"] = room
+    
+    # 記錄房間/位置輸入
+    log_user_action("INPUT_ROOM", f"Room={room}")
+    
     return redirect("/Inform/06_Content")
 
 
@@ -285,7 +390,13 @@ def Inform_06_Content():
 
 @app.route("/Inform/Read_06_Content", methods=["POST"])
 def Inform_Read_06_Content():
-    session["content"] = request.form.get("content", "")
+    content = request.form.get("content", "")
+    session["content"] = content
+    
+    # 記錄補充資訊輸入
+    content_length = len(content)
+    log_user_action("INPUT_CONTENT", f"ContentLength={content_length}")
+    
     return redirect("/Inform/07_Check")
 
 
@@ -320,12 +431,38 @@ def Inform_09_Sending():
         f"通報時間： {Time()}"
     )
 
+    # 記錄事件通報
+    log_user_action("SUBMIT_INCIDENT", 
+        f"Event={event_table[session['event']]} | "
+        f"Location={session['locat_table'][session['locat']]} | "
+        f"Room={session['room']} | "
+        f"ContentLength={len(session['content'])}"
+    )
+
+    # 發送訊息並記錄結果
+    discord_success = False
+    line_success = False
+    
     if discord == 1:
         message_id = discord_send(session["message"] + "\n@everyone\n# [事件回覆](https://forms.gle/dww4orwk2RHSbVV2A)")
         if message_id:
             schedule_discord_edit(message_id, session["message"] + "\n@everyone\n# [事件回覆](https://forms.gle/dww4orwk2RHSbVV2A)")
+            discord_success = True
+            log_user_action("DISCORD_SEND_SUCCESS", f"MessageID={message_id}")
+        else:
+            log_user_action("DISCORD_SEND_FAILED", "Failed to send Discord message")
+    
     if line == 1:
-        broadcast_message(group_id, session["message"])
+        try:
+            broadcast_message(group_id, session["message"])
+            line_success = True
+            log_user_action("LINE_SEND_SUCCESS", f"GroupID={group_id}")
+        except Exception as e:
+            log_user_action("LINE_SEND_FAILED", f"Error={str(e)}")
+
+    # 記錄整體發送結果
+    log_user_action("INCIDENT_BROADCAST_COMPLETE", 
+        f"Discord={discord_success} | LINE={line_success}")
 
     return redirect("/Inform/10_Sended")
 
@@ -344,6 +481,9 @@ def system_test():
 def test_line_bot():
     """測試 LINE Bot 功能"""
     try:
+        # 記錄測試開始
+        log_user_action("TEST_LINE_BOT_START")
+        
         # 創建測試訊息
         test_message = (
             "🔧 系統測試訊息 / System Test Message\n"
@@ -355,10 +495,14 @@ def test_line_bot():
         # 發送測試訊息到群組
         send_group_message(group_id, test_message)
         
+        # 記錄測試成功
+        log_user_action("TEST_LINE_BOT_SUCCESS", f"GroupID={group_id}")
         logging.info("LINE Bot test message sent successfully")
         return jsonify({"success": True, "message": "LINE Bot 測試成功"})
         
     except Exception as e:
+        # 記錄測試失敗
+        log_user_action("TEST_LINE_BOT_FAILED", f"Error={str(e)}")
         logging.error(f"LINE Bot test failed: {e}")
         return jsonify({"success": False, "error": str(e)})
 
@@ -367,6 +511,9 @@ def test_line_bot():
 def test_discord():
     """測試 Discord Webhook 功能"""
     try:
+        # 記錄測試開始
+        log_user_action("TEST_DISCORD_START")
+        
         # 創建測試訊息
         test_message = (
             "🔧 **系統測試訊息 / System Test Message**\n"
@@ -379,14 +526,316 @@ def test_discord():
         message_id = discord_send(test_message)
         
         if message_id:
+            # 記錄測試成功
+            log_user_action("TEST_DISCORD_SUCCESS", f"MessageID={message_id}")
             logging.info(f"Discord test message sent successfully, ID: {message_id}")
             return jsonify({"success": True, "message": "Discord 測試成功", "message_id": message_id})
         else:
+            # 記錄測試失敗
+            log_user_action("TEST_DISCORD_FAILED", "Failed to send Discord message")
             logging.error("Discord test message failed to send")
             return jsonify({"success": False, "error": "Discord 訊息發送失敗"})
         
     except Exception as e:
+        # 記錄測試失敗
+        log_user_action("TEST_DISCORD_FAILED", f"Error={str(e)}")
         logging.error(f"Discord test failed: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/system/logs")
+def system_logs():
+    """系統日誌管理頁面"""
+    return render_template("/system/logs.html")
+
+
+@app.route("/system/logs/files", methods=["GET"])
+def get_log_files():
+    """獲取可用的日誌檔案列表"""
+    try:
+        log_files = []
+        
+        if os.path.exists("logs"):
+            for filename in os.listdir("logs"):
+                if filename.startswith("flask_app_") and filename.endswith(".log"):
+                    # 提取日期
+                    date_str = filename.replace("flask_app_", "").replace(".log", "")
+                    try:
+                        # 轉換為可讀格式
+                        date_obj = datetime.datetime.strptime(date_str, "%Y%m%d")
+                        readable_date = date_obj.strftime("%Y-%m-%d")
+                        
+                        # 獲取檔案大小
+                        file_path = os.path.join("logs", filename)
+                        file_size = os.path.getsize(file_path)
+                        
+                        log_files.append({
+                            "filename": filename,
+                            "date": readable_date,
+                            "size": file_size,
+                            "size_mb": round(file_size / 1024 / 1024, 2)
+                        })
+                    except ValueError:
+                        # 日期格式不正確，跳過
+                        continue
+        
+        # 按日期排序（最新的在前）
+        log_files.sort(key=lambda x: x["date"], reverse=True)
+        
+        return jsonify({
+            "success": True,
+            "files": log_files
+        })
+        
+    except Exception as e:
+        logging.error(f"Get log files failed: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/system/logs/api", methods=["POST"])
+def get_logs_api():
+    """獲取日誌資料API"""
+    try:
+        data = request.get_json()
+        log_type = data.get('log_type', 'all')
+        date_from = data.get('date_from', '')
+        date_to = data.get('date_to', '')
+        ip_filter = data.get('ip_filter', '')
+        
+        logs = []
+        stats = {
+            'total_requests': 0,
+            'user_actions': 0,
+            'incidents': 0,
+            'tests': 0
+        }
+        
+        # 如果沒有指定日期範圍，預設為今天
+        if not date_from:
+            date_from = datetime.datetime.now().strftime("%Y-%m-%d")
+        if not date_to:
+            date_to = date_from
+        
+        # 轉換日期格式並生成日期列表
+        try:
+            start_date = datetime.datetime.strptime(date_from, "%Y-%m-%d")
+            end_date = datetime.datetime.strptime(date_to, "%Y-%m-%d")
+            
+            # 生成日期範圍
+            current_date = start_date
+            while current_date <= end_date:
+                date_str = current_date.strftime("%Y%m%d")
+                log_filename = get_log_filename(date_str)
+                
+                # 讀取該日期的日誌檔案
+                try:
+                    with open(log_filename, 'r', encoding='utf-8') as f:
+                        for line in f:
+                            line = line.strip()
+                            if not line:
+                                continue
+                            
+                            # IP 過濾（在解析前先過濾）
+                            if ip_filter and ip_filter not in line:
+                                continue
+                            
+                            # 解析日誌格式
+                            if 'REQUEST:' in line:
+                                stats['total_requests'] += 1
+                                if log_type in ['all', 'request']:
+                                    logs.append({
+                                        'timestamp': line.split(']')[0][1:],
+                                        'type': 'REQUEST',
+                                        'content': line,
+                                        'date': current_date.strftime("%Y-%m-%d")
+                                    })
+                            elif 'RESPONSE:' in line:
+                                if log_type in ['all', 'response']:
+                                    logs.append({
+                                        'timestamp': line.split(']')[0][1:],
+                                        'type': 'RESPONSE',
+                                        'content': line,
+                                        'date': current_date.strftime("%Y-%m-%d")
+                                    })
+                            elif 'USER_ACTION:' in line:
+                                stats['user_actions'] += 1
+                                if 'SUBMIT_INCIDENT' in line:
+                                    stats['incidents'] += 1
+                                elif 'TEST_' in line:
+                                    stats['tests'] += 1
+                                
+                                if log_type in ['all', 'user-action']:
+                                    logs.append({
+                                        'timestamp': line.split(']')[0][1:],
+                                        'type': 'USER_ACTION',
+                                        'content': line,
+                                        'date': current_date.strftime("%Y-%m-%d")
+                                    })
+                            elif 'ERROR' in line or 'WARNING' in line:
+                                if log_type in ['all', 'error']:
+                                    logs.append({
+                                        'timestamp': line.split(']')[0][1:],
+                                        'type': 'ERROR',
+                                        'content': line,
+                                        'date': current_date.strftime("%Y-%m-%d")
+                                    })
+                
+                except FileNotFoundError:
+                    # 該日期的日誌檔案不存在，跳過
+                    pass
+                
+                current_date += datetime.timedelta(days=1)
+        
+        except ValueError as e:
+            return jsonify({"success": False, "error": f"日期格式錯誤: {str(e)}"})
+        
+        # 按時間排序（最新的在前）
+        logs.sort(key=lambda x: x['timestamp'], reverse=True)
+        
+        # 限制返回數量
+        logs = logs[:1000]
+        
+        return jsonify({
+            'success': True,
+            'logs': logs,
+            'stats': stats
+        })
+        
+    except Exception as e:
+        logging.error(f"Get logs API failed: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/system/logs/export", methods=["POST"])
+def export_logs():
+    """匯出日誌檔案"""
+    try:
+        data = request.get_json()
+        log_type = data.get('log_type', 'all')
+        date_from = data.get('date_from', '')
+        date_to = data.get('date_to', '')
+        ip_filter = data.get('ip_filter', '')
+        
+        # 如果沒有指定日期範圍，預設為今天
+        if not date_from:
+            date_from = datetime.datetime.now().strftime("%Y-%m-%d")
+        if not date_to:
+            date_to = date_from
+        
+        logs_content = []
+        
+        # 轉換日期格式並生成日期列表
+        try:
+            start_date = datetime.datetime.strptime(date_from, "%Y-%m-%d")
+            end_date = datetime.datetime.strptime(date_to, "%Y-%m-%d")
+            
+            # 生成日期範圍
+            current_date = start_date
+            while current_date <= end_date:
+                date_str = current_date.strftime("%Y%m%d")
+                log_filename = get_log_filename(date_str)
+                
+                # 讀取該日期的日誌檔案
+                try:
+                    with open(log_filename, 'r', encoding='utf-8') as f:
+                        # 添加日期分隔標記
+                        logs_content.append(f"\n=== {current_date.strftime('%Y-%m-%d')} ===")
+                        
+                        for line in f:
+                            line = line.strip()
+                            if not line:
+                                continue
+                            
+                            # 根據類型過濾
+                            if log_type == 'request' and 'REQUEST:' not in line:
+                                continue
+                            elif log_type == 'response' and 'RESPONSE:' not in line:
+                                continue
+                            elif log_type == 'user-action' and 'USER_ACTION:' not in line:
+                                continue
+                            elif log_type == 'error' and 'ERROR' not in line and 'WARNING' not in line:
+                                continue
+                            
+                            # IP 過濾
+                            if ip_filter and ip_filter not in line:
+                                continue
+                            
+                            logs_content.append(line)
+                
+                except FileNotFoundError:
+                    logs_content.append(f"No logs found for {current_date.strftime('%Y-%m-%d')}")
+                
+                current_date += datetime.timedelta(days=1)
+        
+        except ValueError as e:
+            return jsonify({"success": False, "error": f"日期格式錯誤: {str(e)}"})
+        
+        if not logs_content:
+            logs_content.append("No logs found for the specified criteria.")
+        
+        # 創建回應
+        from flask import Response
+        filename = f"logs_{date_from}_to_{date_to}.txt"
+        response = Response(
+            '\n'.join(logs_content),
+            mimetype='text/plain',
+            headers={
+                'Content-Disposition': f'attachment; filename={filename}'
+            }
+        )
+        
+        return response
+        
+    except Exception as e:
+        logging.error(f"Export logs failed: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/system/logs/clear", methods=["POST"])
+def clear_logs():
+    """清除日誌檔案"""
+    try:
+        data = request.get_json()
+        date_from = data.get('date_from', '')
+        date_to = data.get('date_to', '')
+        
+        # 如果沒有指定日期範圍，預設為今天
+        if not date_from:
+            date_from = datetime.datetime.now().strftime("%Y-%m-%d")
+        if not date_to:
+            date_to = date_from
+        
+        cleared_files = []
+        
+        # 轉換日期格式並生成日期列表
+        try:
+            start_date = datetime.datetime.strptime(date_from, "%Y-%m-%d")
+            end_date = datetime.datetime.strptime(date_to, "%Y-%m-%d")
+            
+            # 生成日期範圍
+            current_date = start_date
+            while current_date <= end_date:
+                date_str = current_date.strftime("%Y%m%d")
+                log_filename = get_log_filename(date_str)
+                
+                # 清除該日期的日誌檔案
+                if os.path.exists(log_filename):
+                    os.remove(log_filename)
+                    cleared_files.append(current_date.strftime("%Y-%m-%d"))
+                
+                current_date += datetime.timedelta(days=1)
+        
+        except ValueError as e:
+            return jsonify({"success": False, "error": f"日期格式錯誤: {str(e)}"})
+        
+        # 記錄清除操作
+        log_user_action("CLEAR_LOGS", f"Cleared logs from {date_from} to {date_to}")
+        
+        message = f"已清除 {len(cleared_files)} 個日誌檔案" if cleared_files else "沒有找到要清除的日誌檔案"
+        return jsonify({"success": True, "message": message, "cleared_files": cleared_files})
+        
+    except Exception as e:
+        logging.error(f"Clear logs failed: {e}")
         return jsonify({"success": False, "error": str(e)})
 
 
