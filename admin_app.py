@@ -156,5 +156,5 @@ def internal_error(error):
 if __name__ == "__main__":
     # 啟動管理應用程式
     print("啟動緊急事件通報系統 - 管理網站")
-    print("管理介面: http://localhost:5000")
+    print("管理介面: https://admin.fcuems.tw/")
     app.run(host="0.0.0.0", port=5000, debug=True)
