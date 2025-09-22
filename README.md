@@ -53,15 +53,44 @@ Please refer to [Collaboration Guidelines](docs/COLLABORATION_GUIDELINES.md) for
 This system adopts a **dual-website architecture**, separating main functionality from administrative functions for enhanced security:
 
 ### 主網站 (Main Website) - 端口 8000
+- **網域 / Domain**: [www.fcuems.tw](https://www.fcuems.tw)
 - **用途 / Purpose**: 緊急事件通報的主要介面 / Main interface for emergency incident reporting
 - **檔案 / File**: `app.py`
 - **功能 / Features**: 案件填報、LINE Bot 回調處理、公開API / Case reporting, LINE Bot callback handling, public APIs
 
 ### 管理網站 (Admin Website) - 端口 5000
+- **網域 / Domain**: [admin.fcuems.tw](https://admin.fcuems.tw)
 - **用途 / Purpose**: 系統管理介面 / System administration interface
 - **檔案 / File**: `admin_app.py`
 - **功能 / Features**: 日誌管理、案件紀錄管理、系統測試 / Log management, case records management, system testing
-- **訪問限制 / Access Restriction**: 通過 Zero Trust 保護 / Protected by Zero Trust
+- **訪問限制 / Access Restriction**: 通過 Cloudflare Zero Trust 保護 / Protected by Cloudflare Zero Trust
+- **認證方式 / Authentication**: 逢甲大學 O365 帳號登入 / FCU O365 Account Login
+
+### Cloudflare Tunnel 服務 / Cloudflare Tunnel Service
+- **服務提供者 / Service Provider**: Cloudflare Tunnel (cloudflared)
+- **功能 / Features**: 
+  - 安全的內網穿透 / Secure internal network tunneling
+  - SSL/TLS 加密連線 / SSL/TLS encrypted connections
+  - DDoS 防護 / DDoS protection
+  - 全球 CDN 加速 / Global CDN acceleration
+  - Zero Trust 身份認證 / Zero Trust identity authentication
+- **配置 / Configuration**: 自動管理 SSL 憑證和路由 / Automatic SSL certificate and routing management
+
+### Zero Trust 身份認證 / Zero Trust Authentication
+- **認證提供者 / Identity Provider**: Microsoft Azure AD (逢甲大學 O365)
+- **認證網域 / Authentication Domain**: o365.fcu.edu.tw
+- **適用範圍 / Scope**: 僅限管理網站 (admin.fcuems.tw)
+- **認證流程 / Authentication Flow**:
+  1. 使用者訪問管理網站 / User accesses admin website
+  2. 自動重導向至 Cloudflare Zero Trust 登入頁面 / Automatic redirect to Cloudflare Zero Trust login page
+  3. 選擇「逢甲大學 O365」登入選項 / Select "FCU O365" login option
+  4. 使用 o365.fcu.edu.tw 帳號密碼登入 / Login with o365.fcu.edu.tw account credentials
+  5. 成功認證後重導向回管理網站 / Redirect back to admin website after successful authentication
+- **安全特性 / Security Features**:
+  - 多因素認證支援 / Multi-factor authentication support
+  - 單點登入 (SSO) / Single Sign-On (SSO)
+  - 會話管理 / Session management
+  - 存取日誌記錄 / Access logging
 
 ## 系統結構 / System Structure
 
@@ -179,6 +208,69 @@ sudo ./server/setup_all.sh
 ./server/setup.sh all
 ```
 
+**Cloudflare Tunnel 設定 / Cloudflare Tunnel Configuration**:
+
+系統使用 Cloudflare Tunnel (cloudflared) 提供安全的網際網路存取：
+
+The system uses Cloudflare Tunnel (cloudflared) to provide secure internet access:
+
+1. **安裝 cloudflared**:
+   ```bash
+   # Debian/Ubuntu
+   wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+   dpkg -i cloudflared-linux-amd64.deb
+   ```
+
+2. **設定 Tunnel**:
+   ```bash
+   # 登入 Cloudflare
+   cloudflared tunnel login
+   
+   # 建立 Tunnel
+   cloudflared tunnel create ems-tunnel
+   
+   # 設定路由
+   cloudflared tunnel route dns ems-tunnel www.fcuems.tw
+   cloudflared tunnel route dns ems-tunnel admin.fcuems.tw
+   ```
+
+3. **設定 config.yml**:
+   ```yaml
+   tunnel: ems-tunnel
+   credentials-file: /root/.cloudflared/ems-tunnel.json
+   
+   ingress:
+     - hostname: www.fcuems.tw
+       service: http://localhost:8000
+     - hostname: admin.fcuems.tw
+       service: http://localhost:5000
+       originRequest:
+         access:
+           required: true
+           teamName: "your-team-name"
+     - service: http_status:404
+   ```
+
+4. **設定 Zero Trust 認證**:
+   ```bash
+   # 在 Cloudflare Dashboard 中設定 Access Policy
+   # 1. 前往 Zero Trust > Access > Applications
+   # 2. 新增 Application: admin.fcuems.tw
+   # 3. 設定 Identity Provider: Microsoft Azure AD
+   # 4. 設定 Domain: o365.fcu.edu.tw
+   # 5. 設定 Access Policy 允許逢甲大學使用者存取
+   ```
+
+5. **啟動 Tunnel 服務**:
+   ```bash
+   # 安裝為系統服務
+   cloudflared tunnel --config /path/to/config.yml service install
+   
+   # 啟動服務
+   systemctl start cloudflared
+   systemctl enable cloudflared
+   ```
+
 **個別安裝腳本 / Individual Installation Scripts** (備用選項):
 ```bash
 # 主網站安裝 / Main website installation
@@ -207,7 +299,9 @@ sudo ./server/setup_all.sh
 
 The system provides quick testing functionality to ensure LINE Bot and Discord Webhook are working properly:
 
-1. 訪問管理網站 / Access admin website: `http://127.0.0.1:5000`
+1. 訪問管理網站 / Access admin website: [https://admin.fcuems.tw](https://admin.fcuems.tw) 或 `http://127.0.0.1:5000`
+   - **注意 / Note**: 透過網域訪問需要逢甲大學 O365 帳號認證 / Domain access requires FCU O365 account authentication
+   - **本地測試 / Local Testing**: 使用 `http://127.0.0.1:5000` 可跳過認證 / Use `http://127.0.0.1:5000` to bypass authentication
 2. 點擊「系統測試」卡片 / Click "System Test" card
 3. 點擊「測試 LINE Bot」按鈕測試 LINE 群組訊息 / Click "Test LINE Bot" button to test LINE group message
 4. 點擊「測試 Discord」按鈕測試 Discord 頻道訊息 / Click "Test Discord" button to test Discord channel message
@@ -219,7 +313,8 @@ The system provides quick testing functionality to ensure LINE Bot and Discord W
 
 The system provides comprehensive log management functionality, recording all user actions and system events:
 
-1. 訪問管理網站 / Access admin website: `http://127.0.0.1:5000`
+1. 訪問管理網站 / Access admin website: [https://admin.fcuems.tw](https://admin.fcuems.tw) 或 `http://127.0.0.1:5000`
+   - **認證要求 / Authentication Required**: 網域訪問需要逢甲大學 O365 帳號 / Domain access requires FCU O365 account
 2. 點擊「日誌管理」卡片 / Click "Log Management" card
 3. 查看即時統計資料 / View real-time statistics
 4. 過濾和搜尋日誌 / Filter and search logs
@@ -245,7 +340,8 @@ The system provides comprehensive log management functionality, recording all us
 
 The system provides comprehensive case record management functionality, with each case automatically saved as an individual file:
 
-1. 訪問管理網站 / Access admin website: `http://127.0.0.1:5000`
+1. 訪問管理網站 / Access admin website: [https://admin.fcuems.tw](https://admin.fcuems.tw) 或 `http://127.0.0.1:5000`
+   - **認證要求 / Authentication Required**: 網域訪問需要逢甲大學 O365 帳號 / Domain access requires FCU O365 account
 2. 點擊「案件紀錄」卡片 / Click "Case Records" card
 3. 查看案件統計資料 / View case statistics
 4. 按案件類型、日期範圍過濾 / Filter by case type and date range
@@ -267,16 +363,19 @@ The system provides public API interfaces for external system integration:
 **使用範例 / Usage Examples**:
 ```bash
 # 獲取系統統計
-curl "http://localhost:8000/api/stats"
+curl "https://www.fcuems.tw/api/stats"
 
 # 獲取最近10個案件
-curl "http://localhost:8000/api/cases?limit=10"
+curl "https://www.fcuems.tw/api/cases?limit=10"
 
 # 獲取特定案件詳情
-curl "http://localhost:8000/api/cases/case_20250922_001.txt"
+curl "https://www.fcuems.tw/api/cases/case_20250922_001.txt"
 
 # 獲取今日日誌
-curl "http://localhost:8000/api/logs?date_from=2025-09-22&date_to=2025-09-22"
+curl "https://www.fcuems.tw/api/logs?date_from=2025-09-22&date_to=2025-09-22"
+
+# 本地測試 (Local Testing)
+curl "http://localhost:8000/api/stats"
 ```
 
 **詳細文檔 / Detailed Documentation**: 請參閱 [API_DOCUMENTATION_PUBLIC.md](docs/API_DOCUMENTATION_PUBLIC.md)
@@ -325,7 +424,10 @@ DB_NAME=emergency_system
 
 - **管理員名稱 / Administrator Name**: 王建葦
 - **管理員信箱 / Administrator Email**: [admin@mail.jw-albert.tw](mailto:admin@mail.jw-albert.tw)
-- **伺服器資訊 / Server Information**: ems.fcuems.tw (Debian 10)
+- **伺服器資訊 / Server Information**: ems.fcuems.tw (Debian 13)
+- **主網站 / Main Website**: [https://www.fcuems.tw](https://www.fcuems.tw)
+- **管理網站 / Admin Website**: [https://admin.fcuems.tw](https://admin.fcuems.tw)
+- **網路服務 / Network Service**: Cloudflare Tunnel (cloudflared)
 
 ## 隱私權政策與版權 / Privacy Policy and Copyright
 
