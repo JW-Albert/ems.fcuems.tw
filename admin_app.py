@@ -60,6 +60,98 @@ def admin_home():
     logger_manager.log_user_action("訪問管理首頁")
     return render_template("admin/home.html")
 
+# 公告發布路由
+@app.route("/admin/announcement")
+def admin_announcement():
+    """公告發布頁面"""
+    logger_manager.log_user_action("訪問公告發布頁面")
+    return render_template("admin/announcement.html")
+
+@app.route("/admin/announcement/publish", methods=["POST"])
+def publish_announcement():
+    """發布公告"""
+    try:
+        data = request.get_json()
+        content = data.get('content', '').strip()
+        platforms = data.get('platforms', [])
+        
+        if not content:
+            return jsonify({"success": False, "error": "公告內容不能為空"})
+        
+        if not platforms:
+            return jsonify({"success": False, "error": "請至少選擇一個發布平台"})
+        
+        logger_manager.log_user_action("嘗試發布公告", f"平台: {', '.join(platforms)}")
+        
+        # 格式化公告訊息
+        announcement_message = f"""📢 系統公告 / System Announcement
+
+{content}
+
+發布時間 / Published Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+發布者 / Publisher: 系統管理員 / System Administrator"""
+        
+        results = {
+            'line_success': False,
+            'discord_success': False,
+            'line_error': None,
+            'discord_error': None
+        }
+        
+        # 發送到指定平台
+        if 'line' in platforms:
+            line_result = message_broadcaster.test_line_message_custom(announcement_message)
+            results['line_success'] = line_result['success']
+            results['line_error'] = line_result.get('error')
+        
+        if 'discord' in platforms:
+            discord_result = message_broadcaster.test_discord_message_custom(announcement_message)
+            results['discord_success'] = discord_result['success']
+            results['discord_error'] = discord_result.get('error')
+        
+        # 統計成功結果
+        success_count = sum([results['line_success'], results['discord_success']])
+        total_count = len(platforms)
+        
+        if success_count == total_count:
+            logger_manager.log_user_action("公告發布成功", f"成功發送到 {success_count}/{total_count} 個平台")
+            return jsonify({
+                "success": True,
+                "message": f"公告發布成功！已發送到 {success_count} 個平台",
+                "results": results
+            })
+        elif success_count > 0:
+            logger_manager.log_user_action("公告部分發布成功", f"成功發送到 {success_count}/{total_count} 個平台")
+            error_details = []
+            if 'line' in platforms and not results['line_success']:
+                error_details.append(f"LINE: {results['line_error']}")
+            if 'discord' in platforms and not results['discord_success']:
+                error_details.append(f"Discord: {results['discord_error']}")
+            
+            return jsonify({
+                "success": True,
+                "message": f"公告部分發布成功！成功發送到 {success_count}/{total_count} 個平台",
+                "results": results,
+                "errors": error_details
+            })
+        else:
+            logger_manager.log_user_action("公告發布失敗", "所有平台發送失敗")
+            error_details = []
+            if 'line' in platforms:
+                error_details.append(f"LINE: {results['line_error']}")
+            if 'discord' in platforms:
+                error_details.append(f"Discord: {results['discord_error']}")
+            
+            return jsonify({
+                "success": False,
+                "error": "公告發布失敗：" + "; ".join(error_details),
+                "results": results
+            })
+            
+    except Exception as e:
+        logger_manager.log_error(f"公告發布異常: {e}")
+        return jsonify({"success": False, "error": f"系統異常: {str(e)}"})
+
 # 系統測試路由
 @app.route("/system/test")
 def system_test():

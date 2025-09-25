@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>發布公告 - 緊急事件通報系統管理介面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header .icon {
+            font-size: 1.2em;
+            color: #667eea;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+
+        .admin-badge {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 30px;
+        }
+
+        .form-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .platform-selection {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e0e6ed;
+        }
+
+        .platform-selection h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .checkbox-item:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0 !important;
+        }
+
+        .platform-icon {
+            font-size: 1.2em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .back-link a:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .checkbox-group {
+                flex-direction: column;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <span class="icon">📢</span>
+                發布公告
+                <span class="icon">📨</span>
+            </h1>
+            <h2 style="color: #333; font-size: 1.6em; margin-bottom: 10px;">
+                Announcement Publisher
+            </h2>
+            <p>系統公告發布管理 / System Announcement Management</p>
+            <div class="admin-badge">🔐 管理員專用 / Administrator Only</div>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <form id="announcementForm" class="form-container">
+            <div class="form-group">
+                <label for="announcementContent">
+                    📝 公告內容 / Announcement Content
+                </label>
+                <textarea id="announcementContent" name="content"
+                    placeholder="請輸入要發布的公告內容...&#10;Please enter the announcement content...&#10;&#10;範例：&#10;🔔 系統維護通知&#10;維護時間：2024-01-01 02:00-04:00&#10;維護期間系統將暫時無法使用，敬請見諒。"
+                    required>
+                </textarea>
+            </div>
+
+            <div class="form-group">
+                <label>🎯 發布平台 / Publishing Platforms</label>
+                <div class="platform-selection">
+                    <h3>選擇發布目標 / Select Target Platforms</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <span class="platform-icon">💬</span>
+                            <input type="checkbox" id="platform-line" name="platforms" value="line" checked>
+                            <label for="platform-line">LINE 群組</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <span class="platform-icon">🎮</span>
+                            <input type="checkbox" id="platform-discord" name="platforms" value="discord" checked>
+                            <label for="platform-discord">Discord 頻道</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p>正在發布公告...</p>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">
+                    📤 發布公告 / Publish Announcement
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                    🔄 清除內容 / Clear Content
+                </button>
+            </div>
+        </form>
+
+        <div class="back-link">
+            <a href="/">🏠 返回管理首頁 / Back to Admin Home</a>
+        </div>
+    </div>
+
+    <script>
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertDiv.style.display = 'block';
+
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alertDiv);
+
+            // 自動消失
+            setTimeout(() => {
+                alertDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function clearForm() {
+            document.getElementById('announcementContent').value = '';
+            document.querySelectorAll('input[name="platforms"]').forEach(checkbox => {
+                checkbox.checked = true;
+            });
+        }
+
+        document.getElementById('announcementForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const content = document.getElementById('announcementContent').value.trim();
+            const platforms = Array.from(document.querySelectorAll('input[name="platforms"]:checked'))
+                .map(checkbox => checkbox.value);
+
+            if (!content) {
+                showAlert('請輸入公告內容 / Please enter announcement content', 'error');
+                return;
+            }
+
+            if (platforms.length === 0) {
+                showAlert('請至少選擇一個發布平台 / Please select at least one platform', 'error');
+                return;
+            }
+
+            // 顯示載入指示器
+            document.getElementById('loadingIndicator').style.display = 'block';
+
+            try {
+                const response = await fetch('/admin/announcement/publish', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: content,
+                        platforms: platforms
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert(result.message || '公告發布成功 / Announcement published successfully', 'success');
+                    clearForm();
+                } else {
+                    showAlert(result.error || '發布失敗 / Publishing failed', 'error');
+                }
+            } catch (error) {
+                showAlert('網路錯誤，請稍後再試 / Network error, please try again later', 'error');
+                console.error('發布公告錯誤:', error);
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
+            }
+        });
+
+        // 字數統計
+        document.getElementById('announcementContent').addEventListener('input', function () {
+            const length = this.value.length;
+            const maxLength = 2000;
+
+            if (length > maxLength) {
+                this.value = this.value.substring(0, maxLength);
+            }
+        });
+    </script>
+</body>
+
+</html>

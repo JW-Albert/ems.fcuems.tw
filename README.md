@@ -38,6 +38,8 @@ Please refer to [Collaboration Guidelines](docs/COLLABORATION_GUIDELINES.md) for
 
 9. **隱私與版權聲明 / Privacy and Copyright Statements** - 系統包含隱私權保護政策與版權宣告，確保資料使用合規。The system includes privacy protection policies and copyright statements to ensure compliant data usage.
 
+10. **公告發布功能 / Announcement Publishing Feature** - 管理員可通過網頁界面發布系統公告到LINE群組和Discord頻道，支援選擇性發布和即時狀態反饋。Administrators can publish system announcements to LINE groups and Discord channels through a web interface, with selective publishing support and real-time status feedback.
+
 ## 使用技術 / Technologies Used
 
 - **後端框架 / Backend Framework**: Flask
@@ -62,7 +64,7 @@ This system adopts a **dual-website architecture**, separating main functionalit
 - **網域 / Domain**: [admin.fcuems.tw](https://admin.fcuems.tw)
 - **用途 / Purpose**: 系統管理介面 / System administration interface
 - **檔案 / File**: `admin_app.py`
-- **功能 / Features**: 日誌管理、案件紀錄管理、系統測試 / Log management, case records management, system testing
+- **功能 / Features**: 公告發布、日誌管理、案件紀錄管理、系統測試 / Announcement publishing, log management, case records management, system testing
 - **訪問限制 / Access Restriction**: 通過 Cloudflare Zero Trust 保護 / Protected by Cloudflare Zero Trust
 - **認證方式 / Authentication**: 逢甲大學 O365 帳號登入 / FCU O365 Account Login
 
@@ -120,7 +122,8 @@ templates/
     │   ├── 著作權宣告.html - 版權宣告 / Copyright statement
     │   └── 隱私權保護政策.html - 隱私權政策 / Privacy policy
     ├── admin/             - 管理網站頁面模板 / Admin website page templates
-    │   └── home.html     - 管理首頁 / Admin homepage
+    │   ├── home.html     - 管理首頁 / Admin homepage
+    │   └── announcement.html - 公告發布頁面 / Announcement publishing page
     └── system/            - 系統管理頁面模板 / System management page templates
         ├── test.html     - 系統測試頁面 / System test page
         ├── logs.html     - 日誌管理頁面 / Log management page
@@ -306,6 +309,48 @@ The system provides quick testing functionality to ensure LINE Bot and Discord W
 3. 點擊「測試 LINE Bot」按鈕測試 LINE 群組訊息 / Click "Test LINE Bot" button to test LINE group message
 4. 點擊「測試 Discord」按鈕測試 Discord 頻道訊息 / Click "Test Discord" button to test Discord channel message
 5. 查看測試結果和狀態訊息 / Check test results and status messages
+
+### 公告發布功能 / Announcement Publishing Feature
+
+系統提供完整的公告發布功能，管理員可以通過網頁界面發布系統公告到LINE群組和Discord頻道：
+
+The system provides comprehensive announcement publishing functionality, allowing administrators to publish system announcements to LINE groups and Discord channels through a web interface:
+
+1. 訪問管理網站 / Access admin website: [https://admin.fcuems.tw](https://admin.fcuems.tw) 或 `http://127.0.0.1:5000`
+   - **認證要求 / Authentication Required**: 網域訪問需要逢甲大學 O365 帳號 / Domain access requires FCU O365 account
+2. 點擊「發布公告」卡片 / Click "Announcement Publishing" card
+3. 輸入公告內容 / Enter announcement content
+4. 選擇發布平台 / Select publishing platforms:
+   - ✅ LINE 群組 / LINE Group
+   - ✅ Discord 頻道 / Discord Channel
+   - ✅ 兩個平台都發送 / Send to both platforms
+5. 點擊「發布公告」按鈕 / Click "Publish Announcement" button
+6. 查看發布結果和狀態 / Check publishing results and status
+
+**功能特點 / Feature Highlights:**
+- 🎯 **選擇性發布 / Selective Publishing**: 可選擇發布到LINE、Discord或兩個平台 / Can choose to publish to LINE, Discord, or both platforms
+- 📝 **豐富內容支援 / Rich Content Support**: 支援多行文本、表情符號和格式化內容 / Supports multi-line text, emojis, and formatted content
+- ⚡ **即時狀態反饋 / Real-time Status Feedback**: 發布狀態即時顯示，包括成功/失敗詳情 / Real-time publishing status display with success/failure details
+- 🔄 **錯誤處理 / Error Handling**: 完善的錯誤提示和重試機制 / Comprehensive error prompts and retry mechanisms
+- 📊 **日誌記錄 / Logging**: 所有發布操作都會記錄到系統日誌 / All publishing operations are logged to system logs
+- 📱 **響應式設計 / Responsive Design**: 支援桌面和移動設備 / Supports desktop and mobile devices
+
+**公告格式 / Announcement Format:**
+```
+📢 系統公告 / System Announcement
+
+[您的公告內容 / Your announcement content]
+
+發布時間 / Published Time: YYYY-MM-DD HH:MM:SS
+發布者 / Publisher: 系統管理員 / System Administrator
+```
+
+**使用範例 / Usage Examples:**
+- 🔔 系統維護通知 / System maintenance notifications
+- 📋 重要政策更新 / Important policy updates  
+- 🚨 緊急事件提醒 / Emergency incident alerts
+- 📢 活動公告 / Event announcements
+- ⚠️ 服務狀態變更 / Service status changes
 
 ### 日誌管理 / Log Management
 

@@ -5,6 +5,7 @@
 
 import datetime
 from linebot import LineBotApi, WebhookHandler
+from linebot.models import TextSendMessage
 from linebot.exceptions import LineBotApiError
 from dhooks import Webhook
 from config import config
@@ -97,6 +98,34 @@ class MessageBroadcaster:
             return {
                 "success": True, 
                 "message": "Discord測試訊息發送成功",
+                "message_id": response.get('id')
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": f"Discord發送失敗: {str(e)}"}
+    
+    def test_line_message_custom(self, message_content):
+        """發送自定義LINE訊息（用於公告發布）"""
+        try:
+            self.line_bot_api.push_message(
+                self.group_id,
+                TextSendMessage(text=message_content)
+            )
+            return {"success": True, "message": "LINE自定義訊息發送成功"}
+            
+        except LineBotApiError as e:
+            return {"success": False, "error": f"LINE API錯誤: {str(e)}"}
+            
+        except Exception as e:
+            return {"success": False, "error": f"LINE發送異常: {str(e)}"}
+    
+    def test_discord_message_custom(self, message_content):
+        """發送自定義Discord訊息（用於公告發布）"""
+        try:
+            response = self.discord_webhook.send(message_content)
+            return {
+                "success": True, 
+                "message": "Discord自定義訊息發送成功",
                 "message_id": response.get('id')
             }
             
